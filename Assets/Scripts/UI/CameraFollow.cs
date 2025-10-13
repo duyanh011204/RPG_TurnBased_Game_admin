@@ -130,6 +130,7 @@ public class CameraFollow : MonoBehaviour
             Gizmos.DrawWireCube(center, new Vector3(deadZoneWidth, deadZoneHeight, 0));
         }
     }
+
     
     // Public methods
     public void SetTarget(Transform newTarget)
