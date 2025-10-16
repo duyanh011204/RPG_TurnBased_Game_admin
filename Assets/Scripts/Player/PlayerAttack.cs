@@ -11,6 +11,7 @@ public class PlayerAttack : MonoBehaviour
     private bool canAttack = true;
     private Animator animator;
     private TopDownMovement movement;
+    private Vector2 lastMoveDir = Vector2.down;
 
     void Start()
     {
@@ -23,6 +24,10 @@ public class PlayerAttack : MonoBehaviour
 
     void Update()
     {
+        Vector2 moveDir = movement.GetMovementDirection();
+        if (moveDir != Vector2.zero)
+            lastMoveDir = moveDir;
+
         if (Input.GetMouseButtonDown(0) && canAttack)
             StartCoroutine(PerformAttack());
     }
@@ -32,11 +37,31 @@ public class PlayerAttack : MonoBehaviour
         canAttack = false;
         animator.SetTrigger("Attack");
 
-        animator.SetFloat("LastHorizontal", movement.GetMovementDirection().x);
-        animator.SetFloat("LastVertical", movement.GetMovementDirection().y);
+        animator.SetFloat("LastHorizontal", lastMoveDir.x);
+        animator.SetFloat("LastVertical", lastMoveDir.y);
 
+        PositionHitbox();
         yield return new WaitForSeconds(attackCooldown);
         canAttack = true;
+    }
+
+    void PositionHitbox()
+    {
+        if (hitboxObject == null)
+            return;
+
+        Vector3 offset = Vector3.zero;
+
+        if (lastMoveDir == Vector2.up)
+            offset = new Vector3(0, 0.4f);
+        else if (lastMoveDir == Vector2.down)
+            offset = new Vector3(0, -0.4f);
+        else if (lastMoveDir == Vector2.left)
+            offset = new Vector3(-0.4f, 0);
+        else if (lastMoveDir == Vector2.right)
+            offset = new Vector3(0.4f, 0);
+
+        hitboxObject.transform.localPosition = offset;
     }
 
     public void EnableHitbox()

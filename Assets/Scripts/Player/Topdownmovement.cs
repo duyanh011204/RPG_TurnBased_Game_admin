@@ -48,6 +48,9 @@ public class TopDownMovement : MonoBehaviour
 
         if (Input.GetMouseButtonDown(0) && !isAttacking)
             StartCoroutine(HandleAttack());
+
+      
+
     }
 
     private IEnumerator HandleAttack()
