@@ -1,18 +1,50 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
+using System.Collections;
 
-public class NewBehaviourScript : MonoBehaviour
+public class SceneTransition : MonoBehaviour
 {
-    // Start is called before the first frame update
-    void Start()
+    public static SceneTransition Instance { get; private set; }
+
+    [SerializeField] private Image fadeImage;
+    [SerializeField] private float fadeDuration = 1f;
+
+    void Awake()
     {
-        
+        if (Instance != null && Instance != this)
+        {
+            Destroy(gameObject);
+            return;
+        }
+        Instance = this;
+        DontDestroyOnLoad(gameObject);
     }
 
-    // Update is called once per frame
-    void Update()
+    public IEnumerator FadeOut()
     {
-        
+        fadeImage.raycastTarget = true;
+        Color c = fadeImage.color;
+        for (float t = 0; t < fadeDuration; t += Time.deltaTime)
+        {
+            c.a = Mathf.Lerp(0, 1, t / fadeDuration);
+            fadeImage.color = c;
+            yield return null;
+        }
+        c.a = 1;
+        fadeImage.color = c;
+    }
+
+    public IEnumerator FadeIn()
+    {
+        Color c = fadeImage.color;
+        for (float t = 0; t < fadeDuration; t += Time.deltaTime)
+        {
+            c.a = Mathf.Lerp(1, 0, t / fadeDuration);
+            fadeImage.color = c;
+            yield return null;
+        }
+        c.a = 0;
+        fadeImage.color = c;
+        fadeImage.raycastTarget = false;
     }
 }
