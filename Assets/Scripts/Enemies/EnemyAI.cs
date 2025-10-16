@@ -14,6 +14,7 @@ public class EnemyAI : MonoBehaviour
 
     private float currentHealth;
     private bool isDead = false;
+    private bool encounterTriggered = false;
 
     void Start()
     {
@@ -31,7 +32,7 @@ public class EnemyAI : MonoBehaviour
 
     void Update()
     {
-        if (isDead || target == null) return;
+        if (isDead || target == null || encounterTriggered) return;
 
         float distance = Vector2.Distance(transform.position, target.position);
         if (distance <= detectionRange)
@@ -50,6 +51,19 @@ public class EnemyAI : MonoBehaviour
             animator.SetFloat("Horizontal", direction.x);
             animator.SetFloat("Vertical", direction.y);
             animator.SetFloat("Speed", rb.velocity.magnitude);
+        }
+    }
+
+    void OnTriggerEnter2D(Collider2D other)
+    {
+        if (isDead || encounterTriggered) return;
+        if (other.CompareTag("Player"))
+        {
+            encounterTriggered = true;
+            rb.velocity = Vector2.zero;
+            if (animator != null)
+                animator.SetFloat("Speed", 0);
+            EncounterManager.Instance.StartEncounter(false);
         }
     }
 
