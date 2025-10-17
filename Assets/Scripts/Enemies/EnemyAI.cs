@@ -1,93 +1,153 @@
-using UnityEngine;
+﻿using UnityEngine;
+
 
 public class EnemyAI : MonoBehaviour
 {
     [Header("Stats")]
-    [SerializeField] private float maxHealth = 50f;
     [SerializeField] private float moveSpeed = 2f;
     [SerializeField] private float detectionRange = 5f;
+    [SerializeField] private float attackRange = 1.5f;
+    [SerializeField] private float attackCooldown = 2f;
+    [SerializeField] private float patrolRadius = 3f;
+    [SerializeField] private float returnRangeMultiplier = 2f;
 
     [Header("References")]
     [SerializeField] private Transform target;
+    [SerializeField] private string battleSceneName = "CombatScene";
+    [SerializeField] private GameObject attackHitbox;
+
     private Rigidbody2D rb;
     private Animator animator;
+    private Vector2 spawnPoint;
+    private Vector2 patrolTarget;
+    private float lastAttackTime;
 
-    private float currentHealth;
-    private bool isDead = false;
-    private bool encounterTriggered = false;
+    private enum EnemyState { Idle, Patrol, Chase, Attack, Return }
+    private EnemyState currentState;
+    private float idleTimer;
+    private float idleDuration = 2f;
 
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
         animator = GetComponent<Animator>();
-        currentHealth = maxHealth;
+        spawnPoint = transform.position;
+        currentState = EnemyState.Idle;
+
+        if (attackHitbox != null)
+            attackHitbox.SetActive(false);
+
 
         if (target == null)
         {
             GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
-            if (playerObj != null)
-                target = playerObj.transform;
+            if (playerObj != null) target = playerObj.transform;
         }
     }
 
     void Update()
     {
-        if (isDead || target == null || encounterTriggered) return;
+        float distanceToPlayer = target != null ? Vector2.Distance(transform.position, target.position) : Mathf.Infinity;
+        float distanceFromSpawn = Vector2.Distance(transform.position, spawnPoint);
 
-        float distance = Vector2.Distance(transform.position, target.position);
-        if (distance <= detectionRange)
-            ChasePlayer();
-        else
-            rb.velocity = Vector2.zero;
+        switch (currentState)
+        {
+            case EnemyState.Idle:
+                rb.velocity = Vector2.zero;
+                idleTimer += Time.deltaTime;
+                if (distanceToPlayer <= detectionRange && distanceFromSpawn <= detectionRange * returnRangeMultiplier)
+                {
+                    currentState = EnemyState.Chase;
+                    break;
+                }
+                if (idleTimer >= idleDuration)
+                {
+                    idleTimer = 0f;
+                    ChoosePatrolPoint();
+                    currentState = EnemyState.Patrol;
+                }
+                break;
+
+            case EnemyState.Patrol:
+                MoveTowards(patrolTarget);
+                if (Vector2.Distance(transform.position, patrolTarget) < 0.2f) currentState = EnemyState.Idle;
+                if (distanceToPlayer <= detectionRange && distanceFromSpawn <= detectionRange * returnRangeMultiplier)
+                    currentState = EnemyState.Chase;
+                break;
+
+            case EnemyState.Chase:
+                if (target == null) break;
+                if (distanceFromSpawn > detectionRange * returnRangeMultiplier)
+                {
+                    currentState = EnemyState.Return;
+                    break;
+                }
+                if (distanceToPlayer <= attackRange)
+                {
+                    currentState = EnemyState.Attack;
+                    break;
+                }
+                MoveTowards(target.position);
+                break;
+
+            case EnemyState.Attack:
+                rb.velocity = Vector2.zero;
+                if (Time.time - lastAttackTime >= attackCooldown)
+                {
+                    lastAttackTime = Time.time;
+                    if (animator != null) animator.SetTrigger("Attack");
+                }
+
+                if (distanceToPlayer > attackRange && distanceToPlayer <= detectionRange)
+                    currentState = EnemyState.Chase;
+                else if (distanceToPlayer > detectionRange * returnRangeMultiplier)
+                    currentState = EnemyState.Return;
+                break;
+
+            case EnemyState.Return:
+                MoveTowards(spawnPoint);
+                if (Vector2.Distance(transform.position, spawnPoint) < 0.2f) currentState = EnemyState.Idle;
+                break;
+        }
+
+        UpdateAnimation();
     }
 
-    void ChasePlayer()
+    void ChoosePatrolPoint()
     {
-        Vector2 direction = (target.position - transform.position).normalized;
-        rb.velocity = direction * moveSpeed;
+        Vector2 randomOffset = Random.insideUnitCircle * patrolRadius;
+        patrolTarget = spawnPoint + randomOffset;
+    }
 
-        if (animator != null)
+    void MoveTowards(Vector2 targetPos)
+    {
+        Vector2 dir = (targetPos - (Vector2)transform.position).normalized;
+        rb.velocity = dir * moveSpeed;
+    }
+
+    void UpdateAnimation()
+    {
+        if (animator == null) return;
+        animator.SetFloat("Speed", rb.velocity.magnitude);
+        if (rb.velocity.magnitude > 0.01f)
         {
-            animator.SetFloat("Horizontal", direction.x);
-            animator.SetFloat("Vertical", direction.y);
-            animator.SetFloat("Speed", rb.velocity.magnitude);
+            animator.SetFloat("Horizontal", rb.velocity.x);
+            animator.SetFloat("Vertical", rb.velocity.y);
         }
     }
 
-    void OnTriggerEnter2D(Collider2D other)
+    public void EnableAttackHitbox()
     {
-        if (isDead || encounterTriggered) return;
-        if (other.CompareTag("Player"))
-        {
-            encounterTriggered = true;
-            rb.velocity = Vector2.zero;
-            if (animator != null)
-                animator.SetFloat("Speed", 0);
-            EncounterManager.Instance.StartEncounter(false);
-        }
+        if (attackHitbox != null)
+            attackHitbox.SetActive(true);
     }
 
-    public void TakeDamage(float damage)
+    public void DisableAttackHitbox()
     {
-        if (isDead) return;
-
-        currentHealth -= damage;
-
-        if (animator != null)
-            animator.SetTrigger("Hit");
-
-        if (currentHealth <= 0)
-            Die();
-    }
-
-    void Die()
-    {
-        isDead = true;
-        rb.velocity = Vector2.zero;
-
-        if (animator != null)
-            animator.SetTrigger("Die");
-
-        Destroy(gameObject, 0.5f);
+        if (attackHitbox != null)
+            attackHitbox.SetActive(false);
     }
 }
+
+
+

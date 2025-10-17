@@ -11,7 +11,7 @@ public class BattleManager : MonoBehaviour
 
     void Start()
     {
-        playerTurn = BattleStartData.PlayerAdvantage;
+        playerTurn = BattleStartData.PlayerFirst;
         SpawnCombatants();
         StartBattle();
     }

@@ -1,23 +1,21 @@
 using UnityEngine;
 
-public class AttackHitBox : MonoBehaviour
+public class AttackHitbox : MonoBehaviour
 {
-    private PlayerAttack playerAttack;
+    [Header("References")]
+    [SerializeField] private string targetTag = "Enemy"; 
+    [SerializeField] private string battleSceneName = "CombatScene"; 
 
-    void Start()
+    private void OnTriggerEnter2D(Collider2D collision)
     {
-        playerAttack = GetComponentInParent<PlayerAttack>();
-    }
-
-    void OnTriggerEnter2D(Collider2D other)
-    {
-        if (other.CompareTag("Enemy"))
+        if (collision.CompareTag(targetTag))
         {
-            EnemyAI enemy = other.GetComponent<EnemyAI>();
-            if (enemy != null)
+
+            if (BattleStartData.TryStartBattle(true))
             {
-                enemy.TakeDamage(playerAttack.GetAttackDamage());
+                SceneTransitions.LoadScene(battleSceneName);
             }
+
         }
     }
 }

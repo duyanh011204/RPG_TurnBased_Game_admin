@@ -1,10 +1,11 @@
 using UnityEngine;
 using UnityEngine.UI;
 using System.Collections;
+using UnityEngine.SceneManagement;
 
-public class SceneTransition : MonoBehaviour
+public class SceneTransitions : MonoBehaviour
 {
-    public static SceneTransition Instance { get; private set; }
+    public static SceneTransitions Instance { get; private set; }
 
     [SerializeField] private Image fadeImage;
     [SerializeField] private float fadeDuration = 1f;
@@ -18,6 +19,19 @@ public class SceneTransition : MonoBehaviour
         }
         Instance = this;
         DontDestroyOnLoad(gameObject);
+    }
+    public static void LoadScene(string CombatScene)
+    {
+        if (Instance != null)
+        {
+            Instance.StartCoroutine(Instance.LoadSceneCoroutine(CombatScene));
+        }
+    }
+    private IEnumerator LoadSceneCoroutine(string sceneName)
+    {
+        yield return StartCoroutine(FadeOut());
+        SceneManager.LoadScene(sceneName);
+        yield return StartCoroutine(FadeIn());
     }
 
     public IEnumerator FadeOut()
