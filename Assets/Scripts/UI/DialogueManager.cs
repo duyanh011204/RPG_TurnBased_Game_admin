@@ -95,6 +95,6 @@ IEnumerator TypeSentence(string sentence)
     public void EndDialogue()
     {
         dialoguePanel.SetActive(false);
-        IsDialogueActive = false; // tắt flag khi kết thúc hội thoại
+        IsDialogueActive = false; 
     }
 }

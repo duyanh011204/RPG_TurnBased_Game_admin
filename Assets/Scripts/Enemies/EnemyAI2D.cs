@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 
 
-public class EnemyAI : MonoBehaviour
+public class EnemyAI2D : MonoBehaviour
 {
     [Header("Stats")]
     [SerializeField] private float moveSpeed = 2f;
@@ -11,9 +11,14 @@ public class EnemyAI : MonoBehaviour
     [SerializeField] private float patrolRadius = 3f;
     [SerializeField] private float returnRangeMultiplier = 2f;
 
+    [Header("Combat Stats")]
+    [SerializeField] public float maxHP = 100f;
+    public float currentHP;
+    public bool isDead3D = false;
+    public bool isDead2D = false;
+
     [Header("References")]
     [SerializeField] private Transform target;
-    [SerializeField] private string battleSceneName = "CombatScene";
     [SerializeField] private GameObject attackHitbox;
 
     private Rigidbody2D rb;
@@ -30,13 +35,19 @@ public class EnemyAI : MonoBehaviour
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
+        rb.collisionDetectionMode = CollisionDetectionMode2D.Continuous;
         animator = GetComponent<Animator>();
         spawnPoint = transform.position;
         currentState = EnemyState.Idle;
 
-        if (attackHitbox != null)
-            attackHitbox.SetActive(false);
+        currentHP = maxHP;
 
+        if (attackHitbox != null)
+        {
+            attackHitbox.SetActive(false);
+            BoxCollider2D box = attackHitbox.GetComponent<BoxCollider2D>();
+            if (box != null) box.isTrigger = true;
+        }
 
         if (target == null)
         {
@@ -47,6 +58,8 @@ public class EnemyAI : MonoBehaviour
 
     void Update()
     {
+        if (isDead3D) return;
+
         float distanceToPlayer = target != null ? Vector2.Distance(transform.position, target.position) : Mathf.Infinity;
         float distanceFromSpawn = Vector2.Distance(transform.position, spawnPoint);
 
@@ -147,7 +160,28 @@ public class EnemyAI : MonoBehaviour
         if (attackHitbox != null)
             attackHitbox.SetActive(false);
     }
+
+    // --- Combat ---
+    public void TakeDamage(float damage)
+    {
+        if (isDead3D) return;
+
+        currentHP -= damage;
+        if (currentHP <= 0f)
+        {
+            Die();
+        }
+    }
+
+    void Die()
+    {
+        isDead3D = true;
+        if (animator != null)
+            animator.SetTrigger("Die");
+
+        rb.velocity = Vector2.zero;
+        this.enabled = false;
+
+        Destroy(gameObject, 1f);
+    }
 }
-
-
-
