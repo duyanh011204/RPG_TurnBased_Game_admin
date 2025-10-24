@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using UnityEngine;
 
 public class PlayerAttack : MonoBehaviour
@@ -28,8 +28,15 @@ public class PlayerAttack : MonoBehaviour
         if (moveDir != Vector2.zero)
             lastMoveDir = moveDir;
 
-        if (Input.GetMouseButtonDown(0) && canAttack)
-            StartCoroutine(PerformAttack());
+        if (!DialogueManager.IsDialogueActive) // Chỉ cho phép tấn công khi hội thoại không chạy
+        {
+            if (Input.GetMouseButtonDown(0) && canAttack)
+                StartCoroutine(PerformAttack());
+        }
+        else
+        {
+            animator.ResetTrigger("Attack"); // Ngăn animation chạy khi hội thoại active
+        }
     }
 
     private IEnumerator PerformAttack()
@@ -63,6 +70,7 @@ public class PlayerAttack : MonoBehaviour
 
         hitboxObject.transform.localPosition = offset;
     }
+
     private void OnTriggerEnter2D(Collider2D collision)
     {
         if (collision.CompareTag("EnemyAttack"))
@@ -73,6 +81,7 @@ public class PlayerAttack : MonoBehaviour
             }
         }
     }
+
     public void EnableHitbox()
     {
         if (hitboxObject != null)

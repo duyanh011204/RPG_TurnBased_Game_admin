@@ -8,6 +8,8 @@ public class DialogueManager : MonoBehaviour
 {
     public static DialogueManager Instance;
 
+    public static bool IsDialogueActive { get; private set; } = false; // <--- thêm đây
+
     [Header("UI References")]
     [SerializeField] private GameObject dialoguePanel;
     [SerializeField] private TextMeshProUGUI nameText;
@@ -47,42 +49,52 @@ public class DialogueManager : MonoBehaviour
         foreach (string line in dialogueLines)
             sentences.Enqueue(line);
 
+        IsDialogueActive = true; // bật flag khi bắt đầu hội thoại
         DisplayNextSentence();
     }
 
     public void DisplayNextSentence()
+{
+    if (isTyping)
     {
-        if (isTyping) return;
-
-        if (sentences.Count == 0)
-        {
-            EndDialogue();
-            return;
-        }
-
-        currentSentence = sentences.Dequeue();
         StopAllCoroutines();
-        StartCoroutine(TypeSentence(currentSentence));
-    }
-
-    IEnumerator TypeSentence(string sentence)
-    {
-        isTyping = true;
-        dialogueText.text = "";
-        continueIndicator.SetActive(false);
-
-        foreach (char letter in sentence.ToCharArray())
-        {
-            dialogueText.text += letter;
-            yield return new WaitForSeconds(typingSpeed);
-        }
-
+        dialogueText.text = currentSentence;
         isTyping = false;
         continueIndicator.SetActive(true);
+        return;
     }
+
+    if (sentences.Count == 0)
+    {
+        EndDialogue();
+        return;
+    }
+
+    currentSentence = sentences.Dequeue();
+    StopAllCoroutines();
+    StartCoroutine(TypeSentence(currentSentence));
+}
+
+IEnumerator TypeSentence(string sentence)
+{
+    isTyping = true;
+    dialogueText.text = "";
+    continueIndicator.SetActive(false);
+
+    foreach (char letter in sentence.ToCharArray())
+    {
+        dialogueText.text += letter;
+        yield return new WaitForSeconds(typingSpeed);
+    }
+
+    isTyping = false;
+    continueIndicator.SetActive(true);
+}
+
 
     public void EndDialogue()
     {
         dialoguePanel.SetActive(false);
+        IsDialogueActive = false; // tắt flag khi kết thúc hội thoại
     }
 }

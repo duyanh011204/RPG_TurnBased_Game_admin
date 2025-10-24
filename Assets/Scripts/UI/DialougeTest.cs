@@ -8,16 +8,17 @@ public class DialogueTest : MonoBehaviour
 
     IEnumerator Start()
     {
-        yield return null; // đợi 1 frame để DialogueManager kịp Awake
+        yield return null; 
 
         List<string> lines = new List<string>()
         {
-            "Xin chào, đây là hệ thống hội thoại!",
-            "Bạn có thể nhấn để xem câu tiếp theo.",
-            "Khi hết hội thoại, bảng sẽ biến mất."
+            "Hello, this is the dialogue system!",
+            "You can click to see the next line.",
+            "When the dialogue ends, the panel will disappear."
+
         };
 
-        DialogueManager.Instance.StartDialogue("Nhân vật", testPortrait, lines);
+        DialogueManager.Instance.StartDialogue("Player", testPortrait, lines);
     }
 
     void Update()
