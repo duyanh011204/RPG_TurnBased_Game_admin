@@ -18771,7 +18771,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5064510561223002797, guid: 0c6b4cf249e92834b85c834ac6b58d07, type: 3}
       propertyPath: isDead2D
-      value: 1
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5064510561223002797, guid: 0c6b4cf249e92834b85c834ac6b58d07, type: 3}
+      propertyPath: isDead3D
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5064510561223002797, guid: 0c6b4cf249e92834b85c834ac6b58d07, type: 3}
+      propertyPath: currentHP
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5064510561223002797, guid: 0c6b4cf249e92834b85c834ac6b58d07, type: 3}
       propertyPath: moveSpeed

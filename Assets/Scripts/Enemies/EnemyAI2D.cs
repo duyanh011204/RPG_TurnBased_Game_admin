@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using System.Collections;
 
 
 public class EnemyAI2D : MonoBehaviour
@@ -14,8 +15,8 @@ public class EnemyAI2D : MonoBehaviour
     [Header("Combat Stats")]
     [SerializeField] public float maxHP = 100f;
     public float currentHP;
-    public bool isDead3D = false;
-    public bool isDead2D = false;
+    public float attackDamage = 10f;
+    public bool isDead = false;
 
     [Header("References")]
     [SerializeField] private Transform target;
@@ -39,7 +40,6 @@ public class EnemyAI2D : MonoBehaviour
         animator = GetComponent<Animator>();
         spawnPoint = transform.position;
         currentState = EnemyState.Idle;
-
         currentHP = maxHP;
 
         if (attackHitbox != null)
@@ -58,7 +58,7 @@ public class EnemyAI2D : MonoBehaviour
 
     void Update()
     {
-        if (isDead3D) return;
+        if (isDead) return;
 
         float distanceToPlayer = target != null ? Vector2.Distance(transform.position, target.position) : Mathf.Infinity;
         float distanceFromSpawn = Vector2.Distance(transform.position, spawnPoint);
@@ -68,11 +68,13 @@ public class EnemyAI2D : MonoBehaviour
             case EnemyState.Idle:
                 rb.velocity = Vector2.zero;
                 idleTimer += Time.deltaTime;
+
                 if (distanceToPlayer <= detectionRange && distanceFromSpawn <= detectionRange * returnRangeMultiplier)
                 {
                     currentState = EnemyState.Chase;
                     break;
                 }
+
                 if (idleTimer >= idleDuration)
                 {
                     idleTimer = 0f;
@@ -83,32 +85,39 @@ public class EnemyAI2D : MonoBehaviour
 
             case EnemyState.Patrol:
                 MoveTowards(patrolTarget);
-                if (Vector2.Distance(transform.position, patrolTarget) < 0.2f) currentState = EnemyState.Idle;
-                if (distanceToPlayer <= detectionRange && distanceFromSpawn <= detectionRange * returnRangeMultiplier)
+                if (Vector2.Distance(transform.position, patrolTarget) < 0.2f)
+                    currentState = EnemyState.Idle;
+
+                if (distanceToPlayer <= detectionRange)
                     currentState = EnemyState.Chase;
                 break;
 
             case EnemyState.Chase:
                 if (target == null) break;
+
                 if (distanceFromSpawn > detectionRange * returnRangeMultiplier)
                 {
                     currentState = EnemyState.Return;
                     break;
                 }
+
                 if (distanceToPlayer <= attackRange)
                 {
                     currentState = EnemyState.Attack;
                     break;
                 }
+
                 MoveTowards(target.position);
                 break;
 
             case EnemyState.Attack:
                 rb.velocity = Vector2.zero;
+
                 if (Time.time - lastAttackTime >= attackCooldown)
                 {
                     lastAttackTime = Time.time;
                     if (animator != null) animator.SetTrigger("Attack");
+                    DealDamageToPlayer();
                 }
 
                 if (distanceToPlayer > attackRange && distanceToPlayer <= detectionRange)
@@ -119,7 +128,8 @@ public class EnemyAI2D : MonoBehaviour
 
             case EnemyState.Return:
                 MoveTowards(spawnPoint);
-                if (Vector2.Distance(transform.position, spawnPoint) < 0.2f) currentState = EnemyState.Idle;
+                if (Vector2.Distance(transform.position, spawnPoint) < 0.2f)
+                    currentState = EnemyState.Idle;
                 break;
         }
 
@@ -161,27 +171,47 @@ public class EnemyAI2D : MonoBehaviour
             attackHitbox.SetActive(false);
     }
 
-    // --- Combat ---
+    void DealDamageToPlayer()
+    {
+        if (target == null) return;
+
+        PlayerStats player = target.GetComponent<PlayerStats>();
+        if (player != null && !player.isDead)
+            player.TakeDamage(attackDamage);
+    }
+
     public void TakeDamage(float damage)
     {
-        if (isDead3D) return;
+        if (isDead) return;
 
         currentHP -= damage;
         if (currentHP <= 0f)
-        {
             Die();
-        }
     }
 
     void Die()
     {
-        isDead3D = true;
+        if (isDead) return;
+
+        isDead = true;
+        rb.velocity = Vector2.zero;
+
         if (animator != null)
             animator.SetTrigger("Die");
 
-        rb.velocity = Vector2.zero;
-        this.enabled = false;
+        Destroy(gameObject, 1.5f);
+    }
 
-        Destroy(gameObject, 1f);
+    public IEnumerator SetPlayerInvisible(float duration)
+    {
+        Transform player = GameObject.FindGameObjectWithTag("Player")?.transform;
+        if (player == null) yield break;
+
+        float originalRange = detectionRange;
+        detectionRange = 0f;
+        Debug.Log("Player is invisible to enemies!");
+        yield return new WaitForSeconds(duration);
+        detectionRange = originalRange;
+        Debug.Log("Invisibility ended!");
     }
 }

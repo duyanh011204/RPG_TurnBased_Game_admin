@@ -6,11 +6,10 @@ using TMPro;
 
 public class BattleManager : MonoBehaviour
 {
-    [Header("Prefabs & References")]
-    [SerializeField] private GameObject playerPrefab;
+    [Header("References (Scene Objects)")]
+    [SerializeField] private GameObject playerInstance;
     [SerializeField] private GameObject enemyPrefab3D;
     [SerializeField] private GameObject enemy2DReference;
-    [SerializeField] private Transform playerSpawn;
     [SerializeField] private Transform enemySpawn;
 
     [Header("UI Panels")]
@@ -21,9 +20,13 @@ public class BattleManager : MonoBehaviour
     [SerializeField] private Slider playerHPBar;
     [SerializeField] private Slider playerMPBar;
     [SerializeField] private Slider enemyHPBar;
+    [SerializeField] private Slider enemyMPBar;
     [SerializeField] private TMP_Text turnCounterText;
+    [SerializeField] private TMP_Text playerHPText;
+    [SerializeField] private TMP_Text playerMPText;
+    [SerializeField] private TMP_Text enemyHPText;
+    [SerializeField] private TMP_Text enemyMPText;
 
-    private GameObject playerInstance;
     private GameObject enemyInstance3D;
     private Vector3 lastPlayerPosition;
     private bool playerTurn;
@@ -33,29 +36,36 @@ public class BattleManager : MonoBehaviour
     {
         lastPlayerPosition = BattleStartData.LastPlayerPosition;
         playerTurn = BattleStartData.PlayerFirst;
-
-        SpawnCombatants();
-        UpdateUI();
-        StartCoroutine(StartBattle());
+        StartCoroutine(SpawnEnemyAndStartBattle());
     }
 
-    void SpawnCombatants()
+    IEnumerator SpawnEnemyAndStartBattle()
     {
-        playerInstance = Instantiate(playerPrefab, playerSpawn.position, Quaternion.identity);
-        enemyInstance3D = Instantiate(enemyPrefab3D, enemySpawn.position, Quaternion.identity);
+        enemyInstance3D = enemyPrefab3D;
+        yield return null;
+
+        PlayerStrikeUI strikeUI = playerInstance.GetComponent<PlayerStrikeUI>();
+        if (strikeUI != null)
+            strikeUI.SetEnemyTarget(enemyInstance3D.transform);
 
         if (enemyInstance3D != null && enemy2DReference != null)
         {
             EnemyAI3D ai3D = enemyInstance3D.GetComponent<EnemyAI3D>();
             EnemyAI2D ai2D = enemy2DReference.GetComponent<EnemyAI2D>();
-            if (ai3D != null && ai2D != null)
+            if (ai3D != null && ai2D != null && ai2D.currentHP > 0)
                 ai3D.currentHP = ai2D.currentHP;
+            else if (ai3D != null)
+                ai3D.currentHP = ai3D.maxHP;
         }
+
+        UpdateUI();
+        yield return new WaitForSeconds(1.5f);
+        StartCoroutine(StartBattle());
     }
 
     IEnumerator StartBattle()
     {
-        yield return new WaitForSeconds(0.5f);
+        yield return new WaitForSeconds(2f);
         turnCounterText.text = "Turn: " + turnCount;
 
         if (playerTurn)
@@ -77,22 +87,19 @@ public class BattleManager : MonoBehaviour
         panelAction.SetActive(false);
         panelSkill.SetActive(false);
 
-        // Delay trước khi Enemy attack (nhìn Player chuẩn bị)
-        yield return new WaitForSeconds(0.5f);
+        yield return new WaitForSeconds(2f);
 
         EnemyAI3D enemyAI = enemyInstance3D.GetComponent<EnemyAI3D>();
         PlayerStats playerStats = playerInstance.GetComponent<PlayerStats>();
 
         if (enemyAI != null && playerStats != null)
         {
-            enemyAI.PerformAttack(playerStats); // Enemy đánh
-            UpdateUI();                         // cập nhật thanh HP Player
+            enemyAI.PerformAttack(playerStats);
+            UpdateUI();
         }
 
-        // Delay sau khi Enemy attack để player thấy HP giảm và animation
         yield return new WaitForSeconds(0.5f);
-
-        EndTurn(); // chuyển lượt
+        EndTurn();
     }
 
     public void OnAttackButton()
@@ -103,16 +110,13 @@ public class BattleManager : MonoBehaviour
 
     public void OnStrikeButton()
     {
-        EnemyAI3D enemyAI = enemyInstance3D.GetComponent<EnemyAI3D>();
-        if (enemyAI != null)
+        PlayerStrikeUI strikeUI = playerInstance.GetComponent<PlayerStrikeUI>();
+        if (strikeUI != null)
         {
-            enemyAI.TakeDamage(20f);
-            if (enemyAI.animator != null) enemyAI.animator.SetTrigger("Hit");
+            strikeUI.OnStrikeButton();
         }
 
-        UpdateUI();
         panelSkill.SetActive(false);
-        EndTurn();
     }
 
     public void OnBackButton()
@@ -121,10 +125,71 @@ public class BattleManager : MonoBehaviour
         panelAction.SetActive(true);
     }
 
-    public void OnItemButton() { Debug.Log("Item button pressed"); }
-    public void OnMeditateButton() { Debug.Log("Meditate button pressed"); }
-    public void OnGuardButton() { Debug.Log("Guard button pressed"); }
-    public void OnEscapeButton() { Debug.Log("Escape button pressed"); }
+    // 🧘 Meditate
+    public void OnMeditateButton()
+    {
+        PlayerStats playerStats = playerInstance.GetComponent<PlayerStats>();
+        if (playerStats != null)
+        {
+            playerStats.RecoverMana(10f);
+            UpdateUI();
+        }
+
+        panelAction.SetActive(false);
+        panelSkill.SetActive(false);
+        EndTurn();
+    }
+
+    // 🛡️ Guard
+    public void OnGuardButton()
+    {
+        PlayerStats playerStats = playerInstance.GetComponent<PlayerStats>();
+        if (playerStats != null)
+        {
+            playerStats.StartCoroutine(playerStats.ApplyGuardBuff(1));
+        }
+
+        panelAction.SetActive(false);
+        panelSkill.SetActive(false);
+        EndTurn();
+    }
+
+    // 🏃 Escape
+    public void OnEscapeButton()
+    {
+        float chance = Random.value;
+        if (chance <= 0.25f)
+        {
+            Debug.Log("Escape successful!");
+            StartCoroutine(EscapeBattle());
+        }
+        else
+        {
+            Debug.Log("Escape failed!");
+            panelAction.SetActive(false);
+            panelSkill.SetActive(false);
+            EndTurn();
+        }
+    }
+
+    private IEnumerator EscapeBattle()
+    {
+        yield return new WaitForSeconds(0.5f);
+        SceneManager.LoadScene("GameWorld");
+
+        yield return new WaitForSeconds(0.2f);
+        GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
+        if (playerObj != null)
+        {
+            playerObj.transform.position = lastPlayerPosition;
+
+            EnemyAI2D[] enemies = FindObjectsOfType<EnemyAI2D>();
+            foreach (var enemy in enemies)
+            {
+                enemy.StartCoroutine(enemy.SetPlayerInvisible(10f));
+            }
+        }
+    }
 
     public void EndTurn()
     {
@@ -157,15 +222,16 @@ public class BattleManager : MonoBehaviour
             EnemyAI2D enemy2D = enemy2DReference.GetComponent<EnemyAI2D>();
             if (enemy2D != null)
             {
-                enemy2D.TakeDamage(9999);
                 Animator anim = enemy2DReference.GetComponent<Animator>();
-                if (anim != null) anim.SetTrigger("Die");
-                Destroy(enemy2DReference, 1f);
+                if (anim != null)
+                    anim.SetTrigger("Die");
+
+                if (enemy2DReference.scene.IsValid())
+                    Destroy(enemy2DReference, 1.5f);
             }
         }
 
         yield return new WaitForSeconds(1f);
-
         SceneManager.LoadScene("GameWorld");
         GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
         if (playerObj != null)
@@ -181,10 +247,23 @@ public class BattleManager : MonoBehaviour
         {
             if (playerHPBar != null) playerHPBar.value = playerStats.currentHP / playerStats.maxHP;
             if (playerMPBar != null) playerMPBar.value = playerStats.currentMP / playerStats.maxMP;
+
+            if (playerHPText != null)
+                playerHPText.text = $" {Mathf.CeilToInt(playerStats.currentHP)}/{Mathf.CeilToInt(playerStats.maxHP)}";
+            if (playerMPText != null)
+                playerMPText.text = $" {Mathf.CeilToInt(playerStats.currentMP)}/{Mathf.CeilToInt(playerStats.maxMP)}";
         }
 
-        if (enemyAI != null && enemyHPBar != null)
-            enemyHPBar.value = enemyAI.currentHP / enemyAI.maxHP;
+        if (enemyAI != null)
+        {
+            if (enemyHPBar != null) enemyHPBar.value = enemyAI.currentHP / enemyAI.maxHP;
+            if (enemyMPBar != null) enemyMPBar.value = enemyAI.currentMP / enemyAI.maxMP;
+
+            if (enemyHPText != null)
+                enemyHPText.text = $" {Mathf.CeilToInt(enemyAI.currentHP)}/{Mathf.CeilToInt(enemyAI.maxHP)}";
+            if (enemyMPText != null)
+                enemyMPText.text = $" {Mathf.CeilToInt(enemyAI.currentMP)}/{Mathf.CeilToInt(enemyAI.maxMP)}";
+        }
     }
 
     public void DamagePlayer(float amount)
