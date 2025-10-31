@@ -34,11 +34,20 @@ public class EnemyAI3D : MonoBehaviour
 
     public void TakeDamage(float damage)
     {
-        if (isDead) return;
-
         currentHP -= damage;
-        if (currentHP <= 0f) Die();
+        if (currentHP < 0) currentHP = 0;
+
+        BattleManager.Instance.UpdateUI();
+
+        if (currentHP <= 0 && !isDead)
+        {
+            isDead = true;
+            if (animator != null) animator.SetTrigger("Die");
+            if (BattleManager.Instance != null)
+                BattleManager.Instance.OnEnemyDefeated(this);
+        }
     }
+
 
     public void Heal(float amount)
     {
@@ -64,10 +73,11 @@ public class EnemyAI3D : MonoBehaviour
         if (currentMP > maxMP) currentMP = maxMP;
     }
 
-    void Die()
+    public void OnDieAnimationEnd()
     {
-        isDead = true;
-        animator.SetTrigger("Die");
-        Destroy(gameObject, 1f);
+        if (BattleManager.Instance != null)
+            BattleManager.Instance.OnEnemyDefeated(this);
+
+        Destroy(gameObject);
     }
 }
