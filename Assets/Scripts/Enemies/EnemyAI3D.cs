@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+
 public class EnemyAI3D : MonoBehaviour
 {
     [Header("Stats")]
@@ -9,10 +10,14 @@ public class EnemyAI3D : MonoBehaviour
 
     [Header("Combat Settings")]
     public float attackDamage = 10f;
-    public float skillCost = 10f;
+    public float skillDamage = 20f;
+    public float skillCost = 20f;
+    public float skillChance = 100f; // 30%
+    public int skillCooldownTurns = 2;
 
     public Animator animator;
     private bool isDead = false;
+    private int currentSkillCooldown = 0;
 
     void Start()
     {
@@ -24,13 +29,39 @@ public class EnemyAI3D : MonoBehaviour
     public void PerformAttack(PlayerStats playerStats)
     {
         if (isDead || playerStats == null) return;
-        if (currentMP >= skillCost) // giả sử tấn công bằng skill tiêu tốn mana
+
+        if (currentSkillCooldown > 0)
+            currentSkillCooldown--;
+
+        Debug.Log("Trying to use skill. MP: " + currentMP + ", Cooldown: " + currentSkillCooldown + ", Chance: " + Random.value);
+
+
+        bool canUseSkill = currentMP >= skillCost && currentSkillCooldown == 0 && Random.value < skillChance;
+
+        if (canUseSkill)
         {
             UseMana(skillCost);
+            Debug.Log("Enemy used skill, remaining MP: " + currentMP);
+
+            if (BattleManager.Instance != null)
+                BattleManager.Instance.UpdateUI();
+
+            animator.SetTrigger("Shoot");
+            playerStats.TakeDamage(skillDamage);
+
+            // Gây độc 2 turn
+            Debug.Log("🔥 Enemy used Poison skill!");
+            playerStats.ApplyPoison(2);
+
+            currentSkillCooldown = skillCooldownTurns;
+        }
+        else
+        {
             animator.SetTrigger("Attack");
             playerStats.TakeDamage(attackDamage);
         }
     }
+
 
     public void TakeDamage(float damage)
     {
@@ -48,15 +79,6 @@ public class EnemyAI3D : MonoBehaviour
         }
     }
 
-
-    public void Heal(float amount)
-    {
-        if (isDead) return;
-
-        currentHP += amount;
-        if (currentHP > maxHP) currentHP = maxHP;
-    }
-
     public bool UseMana(float amount)
     {
         if (currentMP >= amount)
@@ -69,6 +91,8 @@ public class EnemyAI3D : MonoBehaviour
 
     public void RecoverMana(float amount)
     {
+        if (isDead) return;
+
         currentMP += amount;
         if (currentMP > maxMP) currentMP = maxMP;
     }

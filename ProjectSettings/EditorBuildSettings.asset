@@ -10,7 +10,7 @@ EditorBuildSettings:
     guid: 335403dac43b1c64a9d12ae43d0544ba
   - enabled: 1
     path: Assets/GameWorld.unity
-    guid: 2968e8b18d0ee474993d4b0afb45b014
+    guid: 850a7df2901f88d4081e9bd5127a873c
   - enabled: 1
     path: Assets/CombatScene.unity
     guid: 2abadfe9d1ad9b34e9222e7dd546875e

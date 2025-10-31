@@ -1,4 +1,6 @@
 ﻿using UnityEngine;
+using TMPro;
+
 
 public class PlayerStats : MonoBehaviour
 {
@@ -12,6 +14,11 @@ public class PlayerStats : MonoBehaviour
     public bool isDead = false;
     public bool isGuarding = false;
     private float guardReduction = 0.5f; // giảm 50% damage khi Guard
+
+    public bool isPoisoned = false;
+    public int poisonTurnsRemaining = 0;
+    [SerializeField] private GameObject poisonDebuffIcon; // link icon UI
+    [SerializeField] private TMP_Text poisonCounterText;
 
     void Awake()
     {
@@ -80,5 +87,46 @@ public class PlayerStats : MonoBehaviour
             isGuarding = false;
             Debug.Log("🛡️ Guard ended. Damage back to normal.");
         }
+    }
+
+    public void ApplyPoison(int turns)
+    {
+        isPoisoned = true;
+        poisonTurnsRemaining = turns;
+        if (poisonDebuffIcon != null)
+            poisonDebuffIcon.SetActive(true);
+        if (poisonCounterText != null)
+        {
+            poisonCounterText.gameObject.SetActive(true);
+            poisonCounterText.text = poisonTurnsRemaining.ToString();
+        }
+
+    }
+
+    public void ProcessPoison()
+    {
+        if (isPoisoned)
+        {
+            TakeDamage(1f); // giảm 1 HP mỗi turn
+            poisonTurnsRemaining--;
+
+            // update text UI
+            if (poisonCounterText != null)
+                poisonCounterText.text = poisonTurnsRemaining.ToString();
+
+            // chỉ ẩn khi hết turn
+            if (poisonTurnsRemaining <= 0)
+                CurePoison();
+        }
+    }
+
+    public void CurePoison()
+    {
+        isPoisoned = false;
+        poisonTurnsRemaining = 0;
+        if (poisonDebuffIcon != null)
+            poisonDebuffIcon.SetActive(false);
+        if (poisonCounterText != null)
+            poisonCounterText.gameObject.SetActive(false);
     }
 }
