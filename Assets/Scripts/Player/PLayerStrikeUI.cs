@@ -19,7 +19,7 @@ public class PlayerStrikeUI : MonoBehaviour
     void Awake()
     {
         animator = GetComponent<Animator>();
-        playerStats = GetComponent<PlayerStats>();
+        playerStats = FindObjectOfType<PlayerStats>(); // chắc chắn lấy đúng object Player
         battleManager = FindObjectOfType<BattleManager>();
     }
 
@@ -93,8 +93,11 @@ public class PlayerStrikeUI : MonoBehaviour
         EnemyAI3D enemy = enemyTarget.GetComponent<EnemyAI3D>();
         if (enemy != null)
         {
-            enemy.TakeDamage(attackDamage);
-            
+            float totalDamage = attackDamage; // sát thương của skill
+            if (playerStats != null)
+                totalDamage += playerStats.attackBonus; // cộng bonus từ StatPanel
+
+            enemy.TakeDamage(totalDamage);
         }
 
         yield return new WaitForSeconds(animLength * 1f);

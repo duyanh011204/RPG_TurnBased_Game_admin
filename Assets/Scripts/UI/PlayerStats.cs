@@ -1,11 +1,12 @@
 ﻿using UnityEngine;
 using TMPro;
 
-
 public class PlayerStats : MonoBehaviour
 {
     [Header("Stats")]
+    public int attackBonus = 0;
     public float maxHP = 100f;
+    public float speed = 10f;
     public float maxMP = 50f;
     public float currentHP;
     public float currentMP;
@@ -13,44 +14,64 @@ public class PlayerStats : MonoBehaviour
     [Header("Combat")]
     public bool isDead = false;
     public bool isGuarding = false;
-    private float guardReduction = 0.5f; // giảm 50% damage khi Guard
+    private float guardReduction = 0.5f;
 
     public bool isPoisoned = false;
     public int poisonTurnsRemaining = 0;
-    [SerializeField] private GameObject poisonDebuffIcon; // link icon UI
+    [SerializeField] private GameObject poisonDebuffIcon;
     [SerializeField] private TMP_Text poisonCounterText;
 
     void Awake()
     {
+        PlayerData data = SaveSystem.LoadData();
+        if (data != null)
+        {
+            attackBonus = data.attack;
+            maxHP = data.maxHP;
+            speed = data.speed;
+            maxMP = data.maxMP;
+        }
+        else
+        {
+            maxHP = 100f;
+            speed = 10f;
+            maxMP = 50f;
+        }
+
         currentHP = maxHP;
         currentMP = maxMP;
         isDead = false;
     }
 
+
+    public void ApplyPlayerData()
+    {
+        if (GameManager.Instance != null)
+        {
+            PlayerData data = GameManager.Instance.playerData;
+            maxHP = data.maxHP;
+            maxMP = data.maxMP;
+            speed = data.speed;
+        }
+    }
+
     public void TakeDamage(float damage)
     {
         if (isDead) return;
-
-        if (isGuarding)
-        {
-            damage *= guardReduction; // giảm 50%
-            Debug.Log($"🛡️ Guard active! Damage reduced to {damage}");
-        }
-
+        if (isGuarding) damage *= guardReduction;
         currentHP -= damage;
+
         if (currentHP <= 0f)
         {
             currentHP = 0f;
             isDead = true;
-            Debug.Log("💀 Player is dead!");
         }
     }
 
     public void Heal(float amount)
     {
         if (isDead) return;
-        currentHP += amount;
-        if (currentHP > maxHP) currentHP = maxHP;
+        currentHP = Mathf.Min(currentHP + amount, maxHP);
     }
 
     public bool UseMana(float amount)
@@ -67,26 +88,17 @@ public class PlayerStats : MonoBehaviour
     public void RecoverMana(float amount)
     {
         if (isDead) return;
-        currentMP += amount;
-        if (currentMP > maxMP) currentMP = maxMP;
+        currentMP = Mathf.Min(currentMP + amount, maxMP);
     }
 
-    // Kích hoạt Guard
     public void ActivateGuard()
     {
-        if (isDead) return;
-        isGuarding = true;
-        Debug.Log("🛡️ Guard activated! Damage will be reduced this turn.");
+        if (!isDead) isGuarding = true;
     }
 
-    // Hủy Guard (sau lượt quái)
     public void ResetGuard()
     {
-        if (isGuarding)
-        {
-            isGuarding = false;
-            Debug.Log("🛡️ Guard ended. Damage back to normal.");
-        }
+        if (isGuarding) isGuarding = false;
     }
 
     public void ApplyPoison(int turns)
@@ -100,21 +112,16 @@ public class PlayerStats : MonoBehaviour
             poisonCounterText.gameObject.SetActive(true);
             poisonCounterText.text = poisonTurnsRemaining.ToString();
         }
-
     }
 
     public void ProcessPoison()
     {
         if (isPoisoned)
         {
-            TakeDamage(1f); // giảm 1 HP mỗi turn
+            TakeDamage(1f);
             poisonTurnsRemaining--;
-
-            // update text UI
             if (poisonCounterText != null)
                 poisonCounterText.text = poisonTurnsRemaining.ToString();
-
-            // chỉ ẩn khi hết turn
             if (poisonTurnsRemaining <= 0)
                 CurePoison();
         }

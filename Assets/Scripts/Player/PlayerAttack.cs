@@ -1,10 +1,10 @@
 ﻿using System.Collections;
 using UnityEngine;
+using UnityEngine.EventSystems;
 
 public class PlayerAttack : MonoBehaviour
 {
     [Header("Attack Settings")]
-    [SerializeField] private float attackDamage = 20f;
     [SerializeField] private float attackCooldown = 0.5f;
     [SerializeField] private GameObject hitboxObject;
 
@@ -24,19 +24,25 @@ public class PlayerAttack : MonoBehaviour
 
     void Update()
     {
+        Debug.Log($"PointerOverUI = {(EventSystem.current != null && EventSystem.current.IsPointerOverGameObject())}");
+
         Vector2 moveDir = movement.GetMovementDirection();
         if (moveDir != Vector2.zero)
             lastMoveDir = moveDir;
 
-        if (!DialogueManager.IsDialogueActive) // Chỉ cho phép tấn công khi hội thoại không chạy
+        bool canClickAttack = !DialogueManager.IsDialogueActive
+                      && !UIBlocker.IsAnyPanelOpen
+                      && (EventSystem.current == null || !EventSystem.current.IsPointerOverGameObject());
+
+        if (canClickAttack && Input.GetMouseButtonDown(0) && canAttack)
         {
-            if (Input.GetMouseButtonDown(0) && canAttack)
-                StartCoroutine(PerformAttack());
+            StartCoroutine(PerformAttack());
         }
-        else
+        else if (!canClickAttack)
         {
-            animator.ResetTrigger("Attack"); // Ngăn animation chạy khi hội thoại active
+            animator.ResetTrigger("Attack");
         }
+
     }
 
     private IEnumerator PerformAttack()
@@ -75,7 +81,7 @@ public class PlayerAttack : MonoBehaviour
     {
         if (collision.CompareTag("EnemyAttack"))
         {
-            if (BattleStartData.TryStartBattle(false))
+            if (BattleStartData.TryStartBattle(true))
             {
                 SceneTransitions.LoadScene("CombatScene");
             }
@@ -92,10 +98,5 @@ public class PlayerAttack : MonoBehaviour
     {
         if (hitboxObject != null)
             hitboxObject.SetActive(false);
-    }
-
-    public float GetAttackDamage()
-    {
-        return attackDamage;
     }
 }

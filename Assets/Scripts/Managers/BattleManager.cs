@@ -1,43 +1,3 @@
-﻿using UnityEngine;
-using UnityEngine.UI;
-using UnityEngine.SceneManagement;
-using System.Collections;
-using TMPro;
-
-public class BattleManager : MonoBehaviour
-{
-    [Header("References (Scene Objects)")]
-    [SerializeField] private GameObject playerInstance;
-    [SerializeField] private GameObject enemyPrefab3D;
-    [SerializeField] private GameObject enemy2DReference;
-    [SerializeField] private Transform enemySpawn;
-
-    [Header("UI Panels")]
-    [SerializeField] private GameObject panelAction;
-    [SerializeField] private GameObject panelSkill;
-
-    [Header("UI Elements")]
-    [SerializeField] private Slider playerHPBar;
-    [SerializeField] private Slider playerMPBar;
-    [SerializeField] private Slider enemyHPBar;
-    [SerializeField] private Slider enemyMPBar;
-    [SerializeField] private TMP_Text turnCounterText;
-    [SerializeField] private TMP_Text playerHPText;
-    [SerializeField] private TMP_Text playerMPText;
-    [SerializeField] private TMP_Text enemyHPText;
-    [SerializeField] private TMP_Text enemyMPText;
-
-    private GameObject enemyInstance3D;
-    private Vector3 lastPlayerPosition;
-    private bool playerTurn;
-    private int turnCount = 1;
-
-    void Start()
-    {
-        lastPlayerPosition = BattleStartData.LastPlayerPosition;
-        playerTurn = BattleStartData.PlayerFirst;
-        StartCoroutine(SpawnEnemyAndStartBattle());
-    }
 ﻿    using UnityEngine;
     using UnityEngine.UI;
     using UnityEngine.SceneManagement;
@@ -59,8 +19,9 @@ public class BattleManager : MonoBehaviour
         [SerializeField] private GameObject enemyPrefab3D;
         [SerializeField] private GameObject enemy2DReference;
         [SerializeField] private Transform enemySpawn;
+        [SerializeField] private float startingMP = 10f;
 
-        [Header("UI Panels")]
+    [Header("UI Panels")]
         [SerializeField] private GameObject panelAction;
         [SerializeField] private GameObject panelSkill;
         [SerializeField] private GameObject panelItem;
@@ -96,24 +57,38 @@ public class BattleManager : MonoBehaviour
             enemyInstance3D = enemyPrefab3D;
             yield return null;
 
+            // Set target cho PlayerStrikeUI
             PlayerStrikeUI strikeUI = playerInstance.GetComponent<PlayerStrikeUI>();
             if (strikeUI != null)
                 strikeUI.SetEnemyTarget(enemyInstance3D.transform);
 
-            if (enemyInstance3D != null && enemy2DReference != null)
+            // Enemy setup
+            if (enemyInstance3D != null)
             {
                 EnemyAI3D ai3D = enemyInstance3D.GetComponent<EnemyAI3D>();
-                EnemyAI2D ai2D = enemy2DReference.GetComponent<EnemyAI2D>();
-                if (ai3D != null && ai2D != null && ai2D.currentHP > 0)
-                    ai3D.currentHP = ai2D.currentHP;
-                else if (ai3D != null)
+                if (ai3D != null)
+                {
                     ai3D.currentHP = ai3D.maxHP;
+                    ai3D.currentMP = startingMP; // Enemy bắt đầu với 10/50 MP
+                }
+            }
+
+            // Player setup
+            if (playerInstance != null)
+            {
+                PlayerStats playerStats = playerInstance.GetComponent<PlayerStats>();
+                if (playerStats != null)
+                {
+                    playerStats.currentHP = playerStats.maxHP;
+                    playerStats.currentMP = startingMP; // Player bắt đầu với 10/50 MP
+                }
             }
 
             UpdateUI();
             yield return new WaitForSeconds(1.5f);
             StartCoroutine(StartBattle());
         }
+
 
         IEnumerator StartBattle()
         {
@@ -146,7 +121,7 @@ public class BattleManager : MonoBehaviour
 
             if (enemyAI != null && playerStats != null)
             {
-                enemyAI.PerformAttack(playerStats);
+                enemyAI.PerformAttack(playerStats); // trừ mana ngay khi dùng skill
                 UpdateUI();
                 playerStats.ResetGuard();
             }
@@ -281,12 +256,20 @@ public class BattleManager : MonoBehaviour
             }
 
             if (playerHasActed && !enemyHasActed)
+            {
                 StartCoroutine(EnemyTurn());
+            }
             else if (playerHasActed && enemyHasActed)
             {
+                // Kết thúc turn: cộng 10 mana cho cả player và enemy
+                if (playerStats != null) playerStats.RecoverMana(10f);
+                if (enemyAI != null) enemyAI.RecoverMana(10f);
+                if (playerStats != null) playerStats.ProcessPoison();
+
                 turnCount++;
                 turnCounterText.text = "Turn: " + turnCount;
                 StartPlayerTurn();
+                UpdateUI();
             }
         }
 
@@ -367,5 +350,7 @@ public class BattleManager : MonoBehaviour
             // Kết thúc battle nếu enemy chết
             StartCoroutine(EndBattle());
         }
+        
+        
 
 }

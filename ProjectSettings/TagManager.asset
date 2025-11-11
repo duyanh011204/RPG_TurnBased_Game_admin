@@ -8,6 +8,7 @@ TagManager:
   - PLayerAttack
   - EnemyAttack
   - Ground
+  - DontDestroyOnLoad
   layers:
   - Default
   - TransparentFX
