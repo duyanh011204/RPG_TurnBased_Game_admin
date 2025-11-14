@@ -8,7 +8,7 @@ public class DialogueManager : MonoBehaviour
 {
     public static DialogueManager Instance;
 
-    public static bool IsDialogueActive { get; private set; } = false; // <--- thêm đây
+    public static bool IsDialogueActive { get; private set; } = false;
 
     [Header("UI References")]
     [SerializeField] private GameObject dialoguePanel;
@@ -35,12 +35,24 @@ public class DialogueManager : MonoBehaviour
         dialoguePanel.SetActive(false);
         continueIndicator.SetActive(false);
         sentences = new Queue<string>();
+    }
 
-        
+    void Update()
+    {
+        if (IsDialogueActive && Input.GetMouseButtonDown(0))
+        {
+            DisplayNextSentence();
+        }
     }
 
     public void StartDialogue(string speakerName, Sprite portrait, List<string> dialogueLines)
     {
+        if (dialoguePanel == null || dialogueText == null || nameText == null || portraitImage == null)
+        {
+            Debug.LogError("DialogueManager UI references not assigned!");
+            return;
+        }
+
         dialoguePanel.SetActive(true);
         nameText.text = speakerName;
         portraitImage.sprite = portrait;
@@ -49,52 +61,52 @@ public class DialogueManager : MonoBehaviour
         foreach (string line in dialogueLines)
             sentences.Enqueue(line);
 
-        IsDialogueActive = true; // bật flag khi bắt đầu hội thoại
+        IsDialogueActive = true;
         DisplayNextSentence();
     }
 
     public void DisplayNextSentence()
-{
-    if (isTyping)
     {
+        if (isTyping)
+        {
+            StopAllCoroutines();
+            dialogueText.text = currentSentence;
+            isTyping = false;
+            continueIndicator.SetActive(true);
+            return;
+        }
+
+        if (sentences.Count == 0)
+        {
+            EndDialogue();
+            return;
+        }
+
+        currentSentence = sentences.Dequeue();
         StopAllCoroutines();
-        dialogueText.text = currentSentence;
+        StartCoroutine(TypeSentence(currentSentence));
+    }
+
+    private IEnumerator TypeSentence(string sentence)
+    {
+        isTyping = true;
+        dialogueText.text = "";
+        continueIndicator.SetActive(false);
+
+        foreach (char letter in sentence.ToCharArray())
+        {
+            dialogueText.text += letter;
+            yield return new WaitForSeconds(typingSpeed);
+        }
+
         isTyping = false;
         continueIndicator.SetActive(true);
-        return;
     }
-
-    if (sentences.Count == 0)
-    {
-        EndDialogue();
-        return;
-    }
-
-    currentSentence = sentences.Dequeue();
-    StopAllCoroutines();
-    StartCoroutine(TypeSentence(currentSentence));
-}
-
-IEnumerator TypeSentence(string sentence)
-{
-    isTyping = true;
-    dialogueText.text = "";
-    continueIndicator.SetActive(false);
-
-    foreach (char letter in sentence.ToCharArray())
-    {
-        dialogueText.text += letter;
-        yield return new WaitForSeconds(typingSpeed);
-    }
-
-    isTyping = false;
-    continueIndicator.SetActive(true);
-}
-
 
     public void EndDialogue()
     {
         dialoguePanel.SetActive(false);
-        IsDialogueActive = false; 
+        IsDialogueActive = false;
+        continueIndicator.SetActive(false);
     }
 }
