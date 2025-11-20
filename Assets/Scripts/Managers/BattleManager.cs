@@ -41,8 +41,8 @@ public class BattleManager : MonoBehaviour
     [SerializeField] private TMP_Text enemyMPText;
 
     [Header("Enemy Settings")]
-    [SerializeField] private EnemyAI3D[] allEnemiesInCombat; // gán tất cả EnemyAI3D trong scene
-   
+    [SerializeField] private EnemyAI3D[] allEnemiesInCombat; 
+
 
 
     private EnemyAI3D enemyInstance3DComp;
@@ -57,7 +57,7 @@ public class BattleManager : MonoBehaviour
 
     void Start()
     {
-        
+
         lastPlayerPosition = BattleStartData.LastPlayerPosition;
         playerFirstTurn = BattleStartData.PlayerFirst;
         playerTurn = playerFirstTurn;
@@ -123,7 +123,7 @@ public class BattleManager : MonoBehaviour
     {
         PlayerStats playerStats = playerInstance.GetComponent<PlayerStats>();
         if (playerStats != null)
-            playerStats.ResetGuard();  
+            playerStats.ResetGuard();
 
         yield return new WaitForSeconds(2f);
         turnCounterText.text = "Turn: " + turnCount;
@@ -168,7 +168,7 @@ public class BattleManager : MonoBehaviour
             enemyAI.PerformAttack(playerStats);
             UpdateUI();
             playerStats.ResetGuard();
-        }   
+        }
 
         yield return new WaitForSeconds(0.5f);
 
@@ -358,7 +358,7 @@ public class BattleManager : MonoBehaviour
         {
             if (enemyInstance3D != null)
             {
-               
+
                 EnemyAI3D enemyAI = enemyInstance3D.GetComponent<EnemyAI3D>();
                 if (enemyAI != null)
                 {

@@ -1775,7 +1775,7 @@ MonoBehaviour:
   target: {fileID: 1008129908}
   attackHitbox: {fileID: 0}
   respawnTime: 60
-  enemyID: 
+  enemyID: Slime_03
 --- !u!61 &630912923
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -1886,7 +1886,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9749b7558423ccf45a6511c001ca162d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  enemyID: 
+  enemyID: Slime_03
   animator: {fileID: 0}
   respawnDelay: 60
   dieAnimationDuration: 3

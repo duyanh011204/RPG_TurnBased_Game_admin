@@ -30,7 +30,6 @@ public class EnemyAI3D : MonoBehaviour
         currentMP = maxMP;
         if (animator == null) animator = GetComponent<Animator>();
 
-        DeactivateEnemy();
     }
 
     public void PerformAttack(PlayerStats playerStats)
@@ -103,7 +102,7 @@ public class EnemyAI3D : MonoBehaviour
         if (currentMP > maxMP) currentMP = maxMP;
     }
 
- 
+
     public void OnDieAnimationEnd()
     {
         Destroy(gameObject);
@@ -115,7 +114,7 @@ public class EnemyAI3D : MonoBehaviour
 
         foreach (var s in GetComponents<MonoBehaviour>())
         {
-            if (s != this) s.enabled = true; 
+            if (s != this) s.enabled = true;
         }
 
         if (animator != null)
