@@ -8,6 +8,8 @@ public class EnemyAttackHitbox : MonoBehaviour
     [SerializeField] private bool attackerGoesFirst = false;
 
     private bool triggered = false;
+    public string enemyID;
+
 
     private void OnTriggerStay2D(Collider2D collision)
     {
@@ -20,6 +22,7 @@ public class EnemyAttackHitbox : MonoBehaviour
             if (BattleStartData.TryStartBattle(attackerGoesFirst))
             {
                 BattleStartData.LastPlayerPosition = collision.transform.position;
+                BattleStartData.SelectedEnemyID = this.enemyID;
                 SceneTransitions.LoadScene(battleSceneName);
             }
         }

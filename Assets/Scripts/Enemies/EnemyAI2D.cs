@@ -24,7 +24,7 @@ public class EnemyAI2D : MonoBehaviour
 
     [SerializeField] private float respawnTime = 60f;
 
- 
+    public string enemyID;
     private Rigidbody2D rb;
     private Animator animator;
     private Vector2 spawnPoint;

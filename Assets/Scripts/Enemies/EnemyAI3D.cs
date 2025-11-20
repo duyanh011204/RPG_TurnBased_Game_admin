@@ -29,6 +29,8 @@ public class EnemyAI3D : MonoBehaviour
         currentHP = maxHP;
         currentMP = maxMP;
         if (animator == null) animator = GetComponent<Animator>();
+
+        DeactivateEnemy();
     }
 
     public void PerformAttack(PlayerStats playerStats)
@@ -72,13 +74,13 @@ public class EnemyAI3D : MonoBehaviour
         {
             isDead = true;
 
-            // LƯU LẠI TRẠNG THÁI QUÁI CHẾT
-            EnemyBattleData.AddDefeated(enemyID);   // <<< SỬA CHUẨN
+            EnemyBattleData.AddDefeated(enemyID);
+            Debug.Log("Defeated Enemy ID: " + enemyID);
+
 
             if (animator != null)
                 animator.SetTrigger("Die");
 
-            // Gọi BattleManager xử lý exp & kết thúc trận
             BattleManager.Instance?.OnEnemyDefeated(this);
         }
     }
@@ -101,9 +103,37 @@ public class EnemyAI3D : MonoBehaviour
         if (currentMP > maxMP) currentMP = maxMP;
     }
 
-    // Gọi từ Animation Event cuối clip Die
+ 
     public void OnDieAnimationEnd()
     {
         Destroy(gameObject);
     }
+
+    public void ActivateEnemy()
+    {
+        gameObject.SetActive(true);
+
+        foreach (var s in GetComponents<MonoBehaviour>())
+        {
+            if (s != this) s.enabled = true; 
+        }
+
+        if (animator != null)
+            animator.enabled = true;
+    }
+
+    public void DeactivateEnemy()
+    {
+        foreach (var s in GetComponents<MonoBehaviour>())
+        {
+            if (s != this) s.enabled = false;
+        }
+
+        if (animator != null)
+            animator.enabled = false;
+
+        gameObject.SetActive(false);
+    }
+
 }
+

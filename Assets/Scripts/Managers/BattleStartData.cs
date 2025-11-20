@@ -2,6 +2,7 @@
 
 public class BattleStartData : MonoBehaviour
 {
+    public static string SelectedEnemyID { get; set; } = "";
     public static bool BattleStarting { get; private set; } = false;
     public static bool PlayerFirst { get; set; } = false;
 

@@ -8,13 +8,13 @@ public class AttackHitbox : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        if (collision.CompareTag(targetTag))
+        EnemyAI2D enemy = collision.GetComponent<EnemyAI2D>();
+        if (enemy != null)
         {
-            if (BattleStartData.TryStartBattle(true))
-            {
-                BattleStartData.LastPlayerPosition = GameObject.FindGameObjectWithTag("Player").transform.position;
-                SceneTransitions.LoadScene(battleSceneName);
-            }
+            BattleStartData.SelectedEnemyID = collision.GetComponent<EnemyAI2D>().enemyID.ToString();
+            BattleStartData.LastPlayerPosition = transform.position;
+            SceneTransitions.LoadScene("CombatScene");
         }
     }
+
 }

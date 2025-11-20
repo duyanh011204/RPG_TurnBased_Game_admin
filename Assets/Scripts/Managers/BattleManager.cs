@@ -40,6 +40,11 @@ public class BattleManager : MonoBehaviour
     [SerializeField] private TMP_Text enemyHPText;
     [SerializeField] private TMP_Text enemyMPText;
 
+    [Header("Enemy Settings")]
+    [SerializeField] private EnemyAI3D[] allEnemiesInCombat; // gán tất cả EnemyAI3D trong scene
+   
+
+
     private EnemyAI3D enemyInstance3DComp;
     private GameObject enemyInstance3D;
     private Vector3 lastPlayerPosition;
@@ -48,10 +53,11 @@ public class BattleManager : MonoBehaviour
     private bool enemyHasActed = false;
     private int turnCount = 1;
 
-    private bool playerFirstTurn; // lưu thứ tự lượt đầu tiên
+    private bool playerFirstTurn;
 
     void Start()
     {
+        
         lastPlayerPosition = BattleStartData.LastPlayerPosition;
         playerFirstTurn = BattleStartData.PlayerFirst;
         playerTurn = playerFirstTurn;
@@ -60,22 +66,40 @@ public class BattleManager : MonoBehaviour
 
     IEnumerator SpawnEnemyAndStartBattle()
     {
-        enemyInstance3D = enemyPrefab3D;
+        string enemyIDFrom2D = BattleStartData.SelectedEnemyID;
+        lastPlayerPosition = BattleStartData.LastPlayerPosition;
+        playerFirstTurn = BattleStartData.PlayerFirst;
+        playerTurn = playerFirstTurn;
+
+        Debug.Log("SpawnEnemyAndStartBattle: enemyIDFrom2D = " + enemyIDFrom2D);
+
+        // Duyệt tất cả quái
+        foreach (var enemy in allEnemiesInCombat)
+        {
+            if (enemy.enemyID == enemyIDFrom2D)
+            {
+                enemy.ActivateEnemy();
+                enemyInstance3D = enemy.gameObject;
+                enemyInstance3DComp = enemy;
+                Debug.Log("Bật enemy đúng ID: " + enemy.enemyID);
+            }
+            else
+            {
+                enemy.DeactivateEnemy();
+            }
+        }
 
         yield return null;
 
+        // Cài đặt UI và player
         PlayerStrikeUI strikeUI = playerInstance.GetComponent<PlayerStrikeUI>();
-        if (strikeUI != null)
+        if (strikeUI != null && enemyInstance3D != null)
             strikeUI.SetEnemyTarget(enemyInstance3D.transform);
 
-        if (enemyInstance3D != null)
+        if (enemyInstance3DComp != null)
         {
-            EnemyAI3D ai3D = enemyInstance3D.GetComponent<EnemyAI3D>();
-            if (ai3D != null)
-            {
-                ai3D.currentHP = ai3D.maxHP;
-                ai3D.currentMP = startingMP;
-            }
+            enemyInstance3DComp.currentHP = enemyInstance3DComp.maxHP;
+            enemyInstance3DComp.currentMP = startingMP;
         }
 
         if (playerInstance != null)
@@ -89,12 +113,18 @@ public class BattleManager : MonoBehaviour
         }
 
         UpdateUI();
-        yield return new WaitForSeconds(1.5f);
+        yield return new WaitForSeconds(1f);
         StartCoroutine(StartBattle());
     }
 
+
+
     IEnumerator StartBattle()
     {
+        PlayerStats playerStats = playerInstance.GetComponent<PlayerStats>();
+        if (playerStats != null)
+            playerStats.ResetGuard();  
+
         yield return new WaitForSeconds(2f);
         turnCounterText.text = "Turn: " + turnCount;
 
@@ -111,6 +141,10 @@ public class BattleManager : MonoBehaviour
         panelAction.SetActive(true);
         panelSkill.SetActive(false);
         panelItem.SetActive(false);
+
+        PlayerStats playerStats = playerInstance.GetComponent<PlayerStats>();
+        if (playerStats != null)
+            playerStats.ResetGuard();
     }
 
 
@@ -134,7 +168,7 @@ public class BattleManager : MonoBehaviour
             enemyAI.PerformAttack(playerStats);
             UpdateUI();
             playerStats.ResetGuard();
-        }
+        }   
 
         yield return new WaitForSeconds(0.5f);
 
@@ -224,7 +258,6 @@ public class BattleManager : MonoBehaviour
         SceneManager.LoadScene("GameWorld");
 
         yield return new WaitForSeconds(0.2f);
-
         GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
         if (playerObj != null)
         {
@@ -232,13 +265,9 @@ public class BattleManager : MonoBehaviour
 
             EnemyAI2D[] enemies = FindObjectsOfType<EnemyAI2D>();
             foreach (var enemy in enemies)
-            {
-              
                 enemy.StartCoroutine(enemy.SetPlayerInvisible(10f));
-            }
         }
     }
-
 
     public void EndTurn()
     {
@@ -365,8 +394,8 @@ public class BattleManager : MonoBehaviour
 
     public void UpdateUI()
     {
-        PlayerStats playerStats = playerInstance.GetComponent<PlayerStats>();
-        EnemyAI3D enemyAI = enemyInstance3D.GetComponent<EnemyAI3D>();
+        PlayerStats playerStats = playerInstance?.GetComponent<PlayerStats>();
+        EnemyAI3D enemyAI = enemyInstance3D != null ? enemyInstance3D.GetComponent<EnemyAI3D>() : null;
 
         if (playerStats != null)
         {
@@ -390,6 +419,8 @@ public class BattleManager : MonoBehaviour
                 enemyMPText.text = $" {Mathf.CeilToInt(enemyAI.currentMP)}/{Mathf.CeilToInt(enemyAI.maxMP)}";
         }
     }
+
+
 
     public void DamagePlayer(float amount)
     {
@@ -419,7 +450,7 @@ public class BattleManager : MonoBehaviour
 
         playerHasActed = true;
 
-        if (!enemyInstance3D.activeSelf)
+        if (enemy == null || !enemy.gameObject.activeSelf)
         {
             StartCoroutine(EndBattle());
         }
@@ -428,6 +459,7 @@ public class BattleManager : MonoBehaviour
             CheckTurnEnd();
         }
     }
+
 
 
 
