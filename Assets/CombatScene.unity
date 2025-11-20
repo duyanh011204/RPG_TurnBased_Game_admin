@@ -8708,7 +8708,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e8cb05957d4ae4a4dbbe70948b0c60e6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  attackBonus: 0
+  attackBonus: 5
   maxHP: 100
   speed: 10
   maxMP: 50
@@ -8743,7 +8743,7 @@ MonoBehaviour:
   enemyTarget: {fileID: 412794179}
   moveSpeed: 20
   stopDistance: 3
-  attackDamage: 20
+  attackDamage: 100
   manaCost: 10
 --- !u!95 &971780944
 Animator:

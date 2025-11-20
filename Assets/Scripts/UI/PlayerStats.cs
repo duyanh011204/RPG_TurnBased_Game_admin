@@ -61,6 +61,7 @@ public class PlayerStats : MonoBehaviour
             level = data.level;
             exp = data.exp;
             points = data.points;
+            expToNextLevel = data.expToNextLevel;
         }
         else
         {

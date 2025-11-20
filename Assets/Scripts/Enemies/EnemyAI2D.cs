@@ -24,7 +24,7 @@ public class EnemyAI2D : MonoBehaviour
 
     [SerializeField] private float respawnTime = 60f;
 
-    public int enemyID;
+ 
     private Rigidbody2D rb;
     private Animator animator;
     private Vector2 spawnPoint;
@@ -60,27 +60,6 @@ public class EnemyAI2D : MonoBehaviour
         }
     }
 
-    public IEnumerator PlayDieAndRespawn(float respawnTime)
-    {
-        isDead = true;
-        rb.velocity = Vector2.zero;
-
-        if (animator != null)
-            animator.SetTrigger("Die");
-
-        yield return new WaitForSeconds(1f); // thời gian animation Die
-
-        gameObject.SetActive(false);
-
-        yield return new WaitForSeconds(this.respawnTime);
-
-        gameObject.SetActive(true);
-        currentHP = maxHP;
-        isDead = false;
-
-        if (animator != null)
-            animator.SetTrigger("Idle"); // animation bình thường
-    }
 
 
 

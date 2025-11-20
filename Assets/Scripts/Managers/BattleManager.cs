@@ -224,6 +224,7 @@ public class BattleManager : MonoBehaviour
         SceneManager.LoadScene("GameWorld");
 
         yield return new WaitForSeconds(0.2f);
+
         GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
         if (playerObj != null)
         {
@@ -231,9 +232,13 @@ public class BattleManager : MonoBehaviour
 
             EnemyAI2D[] enemies = FindObjectsOfType<EnemyAI2D>();
             foreach (var enemy in enemies)
+            {
+              
                 enemy.StartCoroutine(enemy.SetPlayerInvisible(10f));
+            }
         }
     }
+
 
     public void EndTurn()
     {
@@ -324,7 +329,7 @@ public class BattleManager : MonoBehaviour
         {
             if (enemyInstance3D != null)
             {
-                enemyInstance3D.SetActive(true);
+               
                 EnemyAI3D enemyAI = enemyInstance3D.GetComponent<EnemyAI3D>();
                 if (enemyAI != null)
                 {

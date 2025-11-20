@@ -52,10 +52,14 @@ public class StatPanelSystem : MonoBehaviour
 
     void ResetStats()
     {
-        data = new PlayerData(); // reset tất cả
+        data.attack = 5;
+        data.speed = 10;
+        data.maxHP = 100;
+        data.points = data.level * 5;
         SaveSystem.SaveData(data);
         UpdateUI();
     }
+
 
     void UpdateUI()
     {
