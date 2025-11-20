@@ -77,16 +77,7 @@ public class PlayerAttack : MonoBehaviour
         hitboxObject.transform.localPosition = offset;
     }
 
-    private void OnTriggerEnter2D(Collider2D collision)
-    {
-        if (collision.CompareTag("EnemyAttack"))
-        {
-            if (BattleStartData.TryStartBattle(true))
-            {
-                SceneTransitions.LoadScene("CombatScene");
-            }
-        }
-    }
+    
 
     public void EnableHitbox()
     {

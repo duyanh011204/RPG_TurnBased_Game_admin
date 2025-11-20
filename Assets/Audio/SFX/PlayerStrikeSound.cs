@@ -9,7 +9,7 @@ public class PlayerStrikeSound : MonoBehaviour
 
     public void PlayPunchSound()
     {
-        audioSource.PlayOneShot(punchSound);
+        audioSource.PlayOneShot(punchSound, 0.7f);
     }
 }
 

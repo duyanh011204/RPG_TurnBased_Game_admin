@@ -20,13 +20,15 @@ public class SceneTransitions : MonoBehaviour
         Instance = this;
         DontDestroyOnLoad(gameObject);
     }
-    public static void LoadScene(string CombatScene)
+
+    public static void LoadScene(string sceneName)
     {
         if (Instance != null)
         {
-            Instance.StartCoroutine(Instance.LoadSceneCoroutine(CombatScene));
+            Instance.StartCoroutine(Instance.LoadSceneCoroutine(sceneName));
         }
     }
+
     private IEnumerator LoadSceneCoroutine(string sceneName)
     {
         yield return StartCoroutine(FadeOut());
@@ -36,29 +38,58 @@ public class SceneTransitions : MonoBehaviour
 
     public IEnumerator FadeOut()
     {
+        if (fadeImage == null)
+            yield break;
+
         fadeImage.raycastTarget = true;
         Color c = fadeImage.color;
-        for (float t = 0; t < fadeDuration; t += Time.deltaTime)
+        float elapsed = 0f;
+
+        while (elapsed < fadeDuration)
         {
-            c.a = Mathf.Lerp(0, 1, t / fadeDuration);
+            if (fadeImage == null)
+                yield break;
+
+            elapsed += Time.deltaTime;
+            c.a = Mathf.Lerp(0f, 1f, elapsed / fadeDuration);
             fadeImage.color = c;
             yield return null;
         }
-        c.a = 1;
-        fadeImage.color = c;
+
+        c.a = 1f;
+        if (fadeImage != null)
+            fadeImage.color = c;
     }
 
     public IEnumerator FadeIn()
     {
+        if (fadeImage == null)
+            yield break;
+
         Color c = fadeImage.color;
-        for (float t = 0; t < fadeDuration; t += Time.deltaTime)
+        float elapsed = 0f;
+
+        while (elapsed < fadeDuration)
         {
-            c.a = Mathf.Lerp(1, 0, t / fadeDuration);
+            if (fadeImage == null)
+                yield break;
+
+            elapsed += Time.deltaTime;
+            c.a = Mathf.Lerp(1f, 0f, elapsed / fadeDuration);
             fadeImage.color = c;
             yield return null;
         }
-        c.a = 0;
-        fadeImage.color = c;
-        fadeImage.raycastTarget = false;
+
+        c.a = 0f;
+        if (fadeImage != null)
+        {
+            fadeImage.color = c;
+            fadeImage.raycastTarget = false;
+        }
+    }
+
+    private void OnDestroy()
+    {
+        StopAllCoroutines();
     }
 }

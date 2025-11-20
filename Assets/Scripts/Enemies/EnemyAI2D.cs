@@ -22,11 +22,15 @@ public class EnemyAI2D : MonoBehaviour
     [SerializeField] private Transform target;
     [SerializeField] private GameObject attackHitbox;
 
+    [SerializeField] private float respawnTime = 60f;
+
+    public int enemyID;
     private Rigidbody2D rb;
     private Animator animator;
     private Vector2 spawnPoint;
     private Vector2 patrolTarget;
     private float lastAttackTime;
+
 
     private enum EnemyState { Idle, Patrol, Chase, Attack, Return }
     private EnemyState currentState;
@@ -55,6 +59,30 @@ public class EnemyAI2D : MonoBehaviour
             if (playerObj != null) target = playerObj.transform;
         }
     }
+
+    public IEnumerator PlayDieAndRespawn(float respawnTime)
+    {
+        isDead = true;
+        rb.velocity = Vector2.zero;
+
+        if (animator != null)
+            animator.SetTrigger("Die");
+
+        yield return new WaitForSeconds(1f); // thời gian animation Die
+
+        gameObject.SetActive(false);
+
+        yield return new WaitForSeconds(this.respawnTime);
+
+        gameObject.SetActive(true);
+        currentHP = maxHP;
+        isDead = false;
+
+        if (animator != null)
+            animator.SetTrigger("Idle"); // animation bình thường
+    }
+
+
 
     void Update()
     {
@@ -192,14 +220,11 @@ public class EnemyAI2D : MonoBehaviour
     void Die()
     {
         if (isDead) return;
-
         isDead = true;
         rb.velocity = Vector2.zero;
-
         if (animator != null)
             animator.SetTrigger("Die");
-
-        Destroy(gameObject, 1.5f);
+       
     }
 
     public IEnumerator SetPlayerInvisible(float duration)

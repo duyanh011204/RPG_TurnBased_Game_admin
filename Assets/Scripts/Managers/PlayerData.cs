@@ -2,7 +2,7 @@
 public class PlayerData
 {
     // Stats
-    public int attack = 5;
+    public int attack = 0;
     public int speed = 10;
     public int maxHP = 100;
     public int currentHP = 100;

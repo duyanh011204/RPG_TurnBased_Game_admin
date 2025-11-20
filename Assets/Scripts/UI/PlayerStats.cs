@@ -32,11 +32,26 @@ public class PlayerStats : MonoBehaviour
     [Header("UI")]
     public TMP_Text levelText;
     public TMP_Text expText;
-    public TMP_Text pointsText;
+
 
     void Awake()
     {
-        PlayerData data = SaveSystem.LoadData();
+        PlayerData data = null;
+
+        if (GameManager.Instance != null && GameManager.Instance.playerData != null)
+        {
+            data = GameManager.Instance.playerData;
+            Debug.Log("✅ Loaded player data from GameManager");
+        }
+       
+        else
+        {
+            data = SaveSystem.LoadData();
+            if (data != null)
+                Debug.Log("✅ Loaded player data from JSON");
+        }
+
+      
         if (data != null)
         {
             attackBonus = data.attack;
@@ -45,10 +60,11 @@ public class PlayerStats : MonoBehaviour
             maxMP = data.maxMP;
             level = data.level;
             exp = data.exp;
-            points = data.points; 
+            points = data.points;
         }
         else
         {
+           
             maxHP = 100f;
             speed = 10f;
             maxMP = 50f;
@@ -57,14 +73,17 @@ public class PlayerStats : MonoBehaviour
             points = 0;
         }
 
+      
         currentHP = maxHP;
         currentMP = maxMP;
         isDead = false;
 
+  
         UpdateLevelUI();
         UpdateExpUI();
-     
+       
     }
+
 
 
     public void ApplyPlayerData()
@@ -160,7 +179,7 @@ public class PlayerStats : MonoBehaviour
             poisonCounterText.gameObject.SetActive(false);
     }
 
-    // ================== LEVEL & EXP ==================
+
     public void AddExp(int amount)
     {
         if (level >= maxLevel) return;
@@ -180,7 +199,6 @@ public class PlayerStats : MonoBehaviour
         points += pointsPerLevel;
         expToNextLevel = Mathf.RoundToInt(expToNextLevel * 1.2f);
         UpdateLevelUI();
-        UpdatePointsUI();
         UpdateExpUI();
     }
 
@@ -196,9 +214,5 @@ public class PlayerStats : MonoBehaviour
             expText.text = exp + "/" + expToNextLevel;
     }
 
-    private void UpdatePointsUI()
-    {
-        if (pointsText != null)
-            pointsText.text = "Points: " + points;
-    }
+   
 }

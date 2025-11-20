@@ -10,6 +10,7 @@ public class StatPanelSystem : MonoBehaviour
     public TextMeshProUGUI attackText;
     public TextMeshProUGUI speedText;
     public TextMeshProUGUI healthText;
+    public TextMeshProUGUI expText;
 
     public Button attackPlusButton;
     public Button speedPlusButton;
@@ -18,9 +19,13 @@ public class StatPanelSystem : MonoBehaviour
 
     private PlayerData data;
 
+
     void Start()
     {
-        data = PlayerLogicSystem.LoadOrCreate();
+        data = SaveSystem.LoadData();
+        if (data == null)
+            data = new PlayerData(); 
+
         UpdateUI();
 
         attackPlusButton.onClick.AddListener(() => IncreaseStat("attack"));
@@ -28,6 +33,7 @@ public class StatPanelSystem : MonoBehaviour
         healthPlusButton.onClick.AddListener(() => IncreaseStat("maxHP"));
         resetButton.onClick.AddListener(ResetStats);
     }
+
 
     void IncreaseStat(string stat)
     {
@@ -58,6 +64,8 @@ public class StatPanelSystem : MonoBehaviour
         if (attackText != null) attackText.text = $"Attack: {data.attack}";
         if (speedText != null) speedText.text = $"Speed: {data.speed}";
         if (healthText != null) healthText.text = $"Health: {data.maxHP}";
+
+        if (expText != null) expText.text = $"EXP: {data.exp}/{data.expToNextLevel}"; // mới
 
         bool canAdd = data.points > 0;
         attackPlusButton.interactable = canAdd;

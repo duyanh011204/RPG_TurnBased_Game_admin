@@ -2,6 +2,11 @@
 
 public class EnemyAI3D : MonoBehaviour
 {
+    public string enemyID;
+
+    [Header("Reward")]
+    public int expReward = 50;
+
     [Header("Stats")]
     public float maxHP = 100f;
     public float currentHP;
@@ -12,7 +17,7 @@ public class EnemyAI3D : MonoBehaviour
     public float attackDamage = 10f;
     public float skillDamage = 20f;
     public float skillCost = 20f;
-    public float skillChance = 100f; // 30%
+    public float skillChance = 1f;
     public int skillCooldownTurns = 2;
 
     public Animator animator;
@@ -23,7 +28,7 @@ public class EnemyAI3D : MonoBehaviour
     {
         currentHP = maxHP;
         currentMP = maxMP;
-        animator = GetComponent<Animator>();
+        if (animator == null) animator = GetComponent<Animator>();
     }
 
     public void PerformAttack(PlayerStats playerStats)
@@ -33,49 +38,48 @@ public class EnemyAI3D : MonoBehaviour
         if (currentSkillCooldown > 0)
             currentSkillCooldown--;
 
-        Debug.Log("Trying to use skill. MP: " + currentMP + ", Cooldown: " + currentSkillCooldown + ", Chance: " + Random.value);
-
-
         bool canUseSkill = currentMP >= skillCost && currentSkillCooldown == 0 && Random.value < skillChance;
+
+        if (animator != null)
+        {
+            if (canUseSkill) animator.SetTrigger("Shoot");
+            else animator.SetTrigger("Attack");
+        }
 
         if (canUseSkill)
         {
             UseMana(skillCost);
-            Debug.Log("Enemy used skill, remaining MP: " + currentMP);
-
-            if (BattleManager.Instance != null)
-                BattleManager.Instance.UpdateUI();
-
-            animator.SetTrigger("Shoot");
             playerStats.TakeDamage(skillDamage);
-
-            // Gây độc 2 turn
-            Debug.Log("🔥 Enemy used Poison skill!");
             playerStats.ApplyPoison(2);
-
             currentSkillCooldown = skillCooldownTurns;
         }
         else
         {
-            animator.SetTrigger("Attack");
             playerStats.TakeDamage(attackDamage);
         }
     }
 
-
     public void TakeDamage(float damage)
     {
+        if (isDead) return;
+
         currentHP -= damage;
         if (currentHP < 0) currentHP = 0;
 
-        BattleManager.Instance.UpdateUI();
+        BattleManager.Instance?.UpdateUI();
 
-        if (currentHP <= 0 && !isDead)
+        if (currentHP <= 0)
         {
             isDead = true;
-            if (animator != null) animator.SetTrigger("Die");
-            if (BattleManager.Instance != null)
-                BattleManager.Instance.OnEnemyDefeated(this);
+
+            // LƯU LẠI TRẠNG THÁI QUÁI CHẾT
+            EnemyBattleData.AddDefeated(enemyID);   // <<< SỬA CHUẨN
+
+            if (animator != null)
+                animator.SetTrigger("Die");
+
+            // Gọi BattleManager xử lý exp & kết thúc trận
+            BattleManager.Instance?.OnEnemyDefeated(this);
         }
     }
 
@@ -97,11 +101,9 @@ public class EnemyAI3D : MonoBehaviour
         if (currentMP > maxMP) currentMP = maxMP;
     }
 
+    // Gọi từ Animation Event cuối clip Die
     public void OnDieAnimationEnd()
     {
-        if (BattleManager.Instance != null)
-            BattleManager.Instance.OnEnemyDefeated(this);
-
         Destroy(gameObject);
     }
 }

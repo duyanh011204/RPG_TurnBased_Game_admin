@@ -3641,6 +3641,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6f7e7da860cd8c7418d2ff4371071cc9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  enemyID: Slime_01
+  expReward: 50
   maxHP: 100
   currentHP: 0
   maxMP: 50
@@ -4347,7 +4349,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -8.549957, y: -7.6948853}
+  m_AnchoredPosition: {x: -8.549927, y: -7.6948853}
   m_SizeDelta: {x: -348.8393, y: -270.1794}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &481321314
@@ -8726,7 +8728,6 @@ MonoBehaviour:
   poisonCounterText: {fileID: 388614195}
   levelText: {fileID: 1811640666}
   expText: {fileID: 1980650122}
-  pointsText: {fileID: 0}
 --- !u!114 &971780941
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -8742,7 +8743,7 @@ MonoBehaviour:
   enemyTarget: {fileID: 412794179}
   moveSpeed: 20
   stopDistance: 3
-  attackDamage: 10
+  attackDamage: 20
   manaCost: 10
 --- !u!95 &971780944
 Animator:
@@ -12415,8 +12416,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -364, y: -246.17998}
-  m_SizeDelta: {x: 200, y: 20.4114}
+  m_AnchoredPosition: {x: -429.3521, y: -246.17998}
+  m_SizeDelta: {x: 69.2958, y: 20.4114}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1348696865
 MonoBehaviour:
@@ -16552,7 +16553,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1863782190
 RectTransform:
   m_ObjectHideFlags: 0
@@ -17336,8 +17337,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -343.1, y: -246.18}
-  m_SizeDelta: {x: 200, y: 20.4114}
+  m_AnchoredPosition: {x: -340.6587, y: -246.18}
+  m_SizeDelta: {x: 195.1174, y: 20.4114}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1980650122
 MonoBehaviour:
@@ -18576,6 +18577,10 @@ PrefabInstance:
     - target: {fileID: 6806904276299889626, guid: 84e20bd7376c216428531bb322768647, type: 3}
       propertyPath: m_Name
       value: Slime3D
+      objectReference: {fileID: 0}
+    - target: {fileID: 6806904276299889626, guid: 84e20bd7376c216428531bb322768647, type: 3}
+      propertyPath: m_IsActive
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 9197782755453668004, guid: 84e20bd7376c216428531bb322768647, type: 3}
       propertyPath: m_LocalPosition.x

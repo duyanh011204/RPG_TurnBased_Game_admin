@@ -20,6 +20,11 @@ public class TopDownMovement : MonoBehaviour
 
     void Start()
     {
+        if (BattleStartData.LastPlayerPosition != Vector3.zero)
+        {
+            transform.position = BattleStartData.LastPlayerPosition;
+        }
+
         rb = GetComponent<Rigidbody2D>();
         rb.gravityScale = 0f;
         rb.constraints = RigidbodyConstraints2D.FreezeRotation;
@@ -48,9 +53,6 @@ public class TopDownMovement : MonoBehaviour
 
         if (Input.GetMouseButtonDown(0) && !isAttacking)
             StartCoroutine(HandleAttack());
-
-      
-
     }
 
     private IEnumerator HandleAttack()
@@ -72,7 +74,10 @@ public class TopDownMovement : MonoBehaviour
             rb.velocity = movement * moveSpeed;
         else
             rb.velocity = Vector2.zero;
+    }
 
+    void LateUpdate()
+    {
         if (usePixelSnapping)
         {
             Vector3 pos = transform.position;
@@ -89,7 +94,6 @@ public class TopDownMovement : MonoBehaviour
             animator.SetFloat("Horizontal", movement.x);
             animator.SetFloat("Vertical", movement.y);
             animator.SetFloat("Speed", movement.magnitude);
-
             animator.SetFloat("LastHorizontal", lastMovement.x);
             animator.SetFloat("LastVertical", lastMovement.y);
         }
