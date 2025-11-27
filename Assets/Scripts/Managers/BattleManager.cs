@@ -41,7 +41,9 @@ public class BattleManager : MonoBehaviour
     [SerializeField] private TMP_Text enemyMPText;
 
     [Header("Enemy Settings")]
-    [SerializeField] private EnemyAI3D[] allEnemiesInCombat; 
+    [SerializeField] private MonoBehaviour[] allEnemiesInCombat;
+    private MonoBehaviour currentEnemy;
+  
 
 
 
@@ -52,8 +54,8 @@ public class BattleManager : MonoBehaviour
     private bool playerHasActed = false;
     private bool enemyHasActed = false;
     private int turnCount = 1;
-
     private bool playerFirstTurn;
+
 
     void Start()
     {
@@ -67,55 +69,49 @@ public class BattleManager : MonoBehaviour
     IEnumerator SpawnEnemyAndStartBattle()
     {
         string enemyIDFrom2D = BattleStartData.SelectedEnemyID;
-        lastPlayerPosition = BattleStartData.LastPlayerPosition;
-        playerFirstTurn = BattleStartData.PlayerFirst;
-        playerTurn = playerFirstTurn;
 
-        Debug.Log("SpawnEnemyAndStartBattle: enemyIDFrom2D = " + enemyIDFrom2D);
-
-        // Duyệt tất cả quái
         foreach (var enemy in allEnemiesInCombat)
         {
-            if (enemy.enemyID == enemyIDFrom2D)
+            string id = "";
+            if (enemy is EnemyAI3D e3d) id = e3d.enemyID;
+            else if (enemy is EnemyAI3DKing king) id = king.enemyID;
+
+            if (id == enemyIDFrom2D)
             {
-                enemy.ActivateEnemy();
+                enemy.gameObject.SetActive(true);
                 enemyInstance3D = enemy.gameObject;
-                enemyInstance3DComp = enemy;
-                Debug.Log("Bật enemy đúng ID: " + enemy.enemyID);
+                currentEnemy = enemy;
             }
             else
             {
-                enemy.DeactivateEnemy();
+                enemy.gameObject.SetActive(false);
             }
         }
 
-        yield return null;
+        if (currentEnemy != null)
+        {
+            if (currentEnemy is EnemyAI3D e3d)
+            {
+                e3d.currentHP = e3d.maxHP;
+                e3d.currentMP = startingMP;
+            }
+            else if (currentEnemy is EnemyAI3DKing king)
+            {
+                king.currentHP = king.maxHP;
+                king.currentMP = startingMP;
+            }
+        }
 
-        // Cài đặt UI và player
+      
         PlayerStrikeUI strikeUI = playerInstance.GetComponent<PlayerStrikeUI>();
         if (strikeUI != null && enemyInstance3D != null)
             strikeUI.SetEnemyTarget(enemyInstance3D.transform);
-
-        if (enemyInstance3DComp != null)
-        {
-            enemyInstance3DComp.currentHP = enemyInstance3DComp.maxHP;
-            enemyInstance3DComp.currentMP = startingMP;
-        }
-
-        if (playerInstance != null)
-        {
-            PlayerStats playerStats = playerInstance.GetComponent<PlayerStats>();
-            if (playerStats != null)
-            {
-                playerStats.currentHP = playerStats.maxHP;
-                playerStats.currentMP = startingMP;
-            }
-        }
 
         UpdateUI();
         yield return new WaitForSeconds(1f);
         StartCoroutine(StartBattle());
     }
+
 
 
 
@@ -125,14 +121,18 @@ public class BattleManager : MonoBehaviour
         if (playerStats != null)
             playerStats.ResetGuard();
 
+        playerHasActed = false;
+        enemyHasActed = false;
+
         yield return new WaitForSeconds(2f);
         turnCounterText.text = "Turn: " + turnCount;
 
-        if (playerTurn)
+        if (playerFirstTurn)
             StartPlayerTurn();
         else
             StartCoroutine(EnemyTurn());
     }
+
 
     void StartPlayerTurn()
     {
@@ -160,21 +160,23 @@ public class BattleManager : MonoBehaviour
 
         yield return new WaitForSeconds(1f);
 
-        EnemyAI3D enemyAI = enemyInstance3D != null ? enemyInstance3D.GetComponent<EnemyAI3D>() : null;
         PlayerStats playerStats = playerInstance.GetComponent<PlayerStats>();
-
-        if (enemyAI != null && playerStats != null)
+        if (enemyInstance3D != null && playerStats != null)
         {
-            enemyAI.PerformAttack(playerStats);
-            UpdateUI();
-            playerStats.ResetGuard();
+            if (enemyInstance3D.GetComponent<EnemyAI3D>() is EnemyAI3D e3d)
+                e3d.PerformAttack(playerStats);
+            else if (enemyInstance3D.GetComponent<EnemyAI3DKing>() is EnemyAI3DKing king)
+                king.PerformAttack(playerStats);
         }
+
+        UpdateUI();
 
         yield return new WaitForSeconds(0.5f);
 
         enemyHasActed = true;
         CheckTurnEnd();
     }
+
 
     public void OnAttackButton()
     {
@@ -288,7 +290,7 @@ public class BattleManager : MonoBehaviour
     private void CheckTurnEnd()
     {
         PlayerStats playerStats = playerInstance.GetComponent<PlayerStats>();
-        EnemyAI3D enemyAI = enemyInstance3D.GetComponent<EnemyAI3D>();
+        EnemyAI3D enemyAI = enemyInstance3D?.GetComponent<EnemyAI3D>();
 
         if ((playerStats != null && playerStats.currentHP <= 0) ||
             (enemyAI != null && enemyAI.currentHP <= 0))
@@ -299,41 +301,31 @@ public class BattleManager : MonoBehaviour
 
         if (!playerHasActed || !enemyHasActed)
         {
-            if (playerFirstTurn)
-            {
-                if (!playerHasActed)
-                    StartPlayerTurn();
-                else if (!enemyHasActed)
-                    StartCoroutine(EnemyTurn());
-            }
-            else
-            {
-                if (!enemyHasActed)
-                    StartCoroutine(EnemyTurn());
-                else if (!playerHasActed)
-                    StartPlayerTurn();
-            }
+            if (!playerHasActed)
+                StartPlayerTurn();
+            else if (!enemyHasActed)
+                StartCoroutine(EnemyTurn());
         }
         else
         {
             playerStats.RecoverMana(10f);
-            enemyAI.RecoverMana(10f);
+            enemyAI?.RecoverMana(10f);
             playerStats.ProcessPoison();
 
             turnCount++;
             turnCounterText.text = "Turn: " + turnCount;
 
-
             playerHasActed = false;
             enemyHasActed = false;
 
-            playerTurn = playerFirstTurn;
+            
             if (playerFirstTurn)
                 StartPlayerTurn();
             else
                 StartCoroutine(EnemyTurn());
         }
     }
+
 
     IEnumerator EndBattle()
     {
@@ -395,30 +387,44 @@ public class BattleManager : MonoBehaviour
     public void UpdateUI()
     {
         PlayerStats playerStats = playerInstance?.GetComponent<PlayerStats>();
-        EnemyAI3D enemyAI = enemyInstance3D != null ? enemyInstance3D.GetComponent<EnemyAI3D>() : null;
+
+        float enemyCurrentHP = 0f;
+        float enemyMaxHP = 1f;
+        float enemyCurrentMP = 0f;
+        float enemyMaxMP = 1f;
+
+        if (enemyInstance3D != null)
+        {
+            if (enemyInstance3D.GetComponent<EnemyAI3D>() is EnemyAI3D e3d)
+            {
+                enemyCurrentHP = e3d.currentHP;
+                enemyMaxHP = e3d.maxHP;
+                enemyCurrentMP = e3d.currentMP;
+                enemyMaxMP = e3d.maxMP;
+            }
+            else if (enemyInstance3D.GetComponent<EnemyAI3DKing>() is EnemyAI3DKing king)
+            {
+                enemyCurrentHP = king.currentHP;
+                enemyMaxHP = king.maxHP;
+                enemyCurrentMP = king.currentMP;
+                enemyMaxMP = king.maxMP;
+            }
+        }
 
         if (playerStats != null)
         {
             if (playerHPBar != null) playerHPBar.value = playerStats.currentHP / playerStats.maxHP;
             if (playerMPBar != null) playerMPBar.value = playerStats.currentMP / playerStats.maxMP;
-
-            if (playerHPText != null)
-                playerHPText.text = $" {Mathf.CeilToInt(playerStats.currentHP)}/{Mathf.CeilToInt(playerStats.maxHP)}";
-            if (playerMPText != null)
-                playerMPText.text = $" {Mathf.CeilToInt(playerStats.currentMP)}/{Mathf.CeilToInt(playerStats.maxMP)}";
+            if (playerHPText != null) playerHPText.text = $" {Mathf.CeilToInt(playerStats.currentHP)}/{Mathf.CeilToInt(playerStats.maxHP)}";
+            if (playerMPText != null) playerMPText.text = $" {Mathf.CeilToInt(playerStats.currentMP)}/{Mathf.CeilToInt(playerStats.maxMP)}";
         }
 
-        if (enemyAI != null)
-        {
-            if (enemyHPBar != null) enemyHPBar.value = enemyAI.currentHP / enemyAI.maxHP;
-            if (enemyMPBar != null) enemyMPBar.value = enemyAI.currentMP / enemyAI.maxMP;
-
-            if (enemyHPText != null)
-                enemyHPText.text = $" {Mathf.CeilToInt(enemyAI.currentHP)}/{Mathf.CeilToInt(enemyAI.maxHP)}";
-            if (enemyMPText != null)
-                enemyMPText.text = $" {Mathf.CeilToInt(enemyAI.currentMP)}/{Mathf.CeilToInt(enemyAI.maxMP)}";
-        }
+        if (enemyHPBar != null) enemyHPBar.value = enemyCurrentHP / enemyMaxHP;
+        if (enemyMPBar != null) enemyMPBar.value = enemyCurrentMP / enemyMaxMP;
+        if (enemyHPText != null) enemyHPText.text = $" {Mathf.CeilToInt(enemyCurrentHP)}/{Mathf.CeilToInt(enemyMaxHP)}";
+        if (enemyMPText != null) enemyMPText.text = $" {Mathf.CeilToInt(enemyCurrentMP)}/{Mathf.CeilToInt(enemyMaxMP)}";
     }
+
 
 
 
@@ -435,33 +441,27 @@ public class BattleManager : MonoBehaviour
 
     public bool PlayerTurn => playerTurn;
 
-    public void OnEnemyDefeated(EnemyAI3D enemy)
+
+    public void OnEnemyDefeated(MonoBehaviour enemy)
     {
-        if (enemy != null)
+        if (enemy == null) return;
+
+        if (enemy is EnemyAI3D e3d)
         {
-            EnemyBattleData.SetDead(enemy.enemyID);
-
-            PlayerStats playerStats = playerInstance.GetComponent<PlayerStats>();
-            if (playerStats != null)
-                playerStats.AddExp(enemy.expReward);
-
-            enemy.gameObject.SetActive(false);
+            EnemyBattleData.SetDead(e3d.enemyID);
+            e3d.gameObject.SetActive(false);
+            playerInstance.GetComponent<PlayerStats>()?.AddExp(e3d.expReward);
+        }
+        else if (enemy is EnemyAI3DKing king)
+        {
+            EnemyBattleData.SetDead(king.enemyID);
+            king.gameObject.SetActive(false);
+            playerInstance.GetComponent<PlayerStats>()?.AddExp(king.expReward);
         }
 
         playerHasActed = true;
-
-        if (enemy == null || !enemy.gameObject.activeSelf)
-        {
-            StartCoroutine(EndBattle());
-        }
-        else
-        {
-            CheckTurnEnd();
-        }
+        StartCoroutine(EndBattle());
     }
 
-
-
-
 }
-
+  

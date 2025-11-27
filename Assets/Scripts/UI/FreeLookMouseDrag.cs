@@ -4,9 +4,8 @@ using Cinemachine;
 public class FreeLookMouseDrag : MonoBehaviour
 {
     public CinemachineFreeLook freeLook;
-    public int mouseButton = 0; // 0 = chuột trái
-    public float sensitivity = 0.002f; // Thử chỉnh nhỏ
-
+    public int mouseButton = 0; 
+    public float sensitivity = 0.002f; 
     private Vector3 lastMousePosition;
     private bool dragging = false;
 
@@ -15,7 +14,7 @@ public class FreeLookMouseDrag : MonoBehaviour
         if (freeLook == null)
             freeLook = GetComponent<CinemachineFreeLook>();
 
-        // Tắt input mặc định
+    
         freeLook.m_XAxis.m_InputAxisName = "";
         freeLook.m_YAxis.m_InputAxisName = "";
     }
@@ -40,7 +39,7 @@ public class FreeLookMouseDrag : MonoBehaviour
             Vector3 delta = Input.mousePosition - lastMousePosition;
             lastMousePosition = Input.mousePosition;
 
-            // Scale delta sang tốc độ FreeLook
+         
             freeLook.m_XAxis.m_InputAxisValue = delta.x * sensitivity;
             freeLook.m_YAxis.m_InputAxisValue = delta.y * sensitivity;
         }

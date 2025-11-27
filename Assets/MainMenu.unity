@@ -893,11 +893,11 @@ Transform:
   m_GameObject: {fileID: 1238318082}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 225.12865, y: 213.6585, z: -1.4339578}
-  m_LocalScale: {x: 0.5, y: 0.7692308, z: 1}
+  m_LocalPosition: {x: 450.2573, y: 277.75604, z: -1.4339578}
+  m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 1321617569}
+  m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1321617567
 GameObject:
@@ -980,8 +980,7 @@ Transform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 2, y: 1.3, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children:
-  - {fileID: 1238318084}
+  m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1485612559
@@ -1532,9 +1531,9 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 723378264}
-        m_TargetAssemblyTypeName: SceneLoader, Assembly-CSharp
-        m_MethodName: LoadDialogueScene
+      - m_Target: {fileID: 1238318083}
+        m_TargetAssemblyTypeName: GameManager, Assembly-CSharp
+        m_MethodName: NewGame
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -1726,3 +1725,4 @@ SceneRoots:
   - {fileID: 1321617569}
   - {fileID: 723378265}
   - {fileID: 451496533}
+  - {fileID: 1238318084}

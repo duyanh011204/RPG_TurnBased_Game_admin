@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
@@ -7,7 +8,6 @@ using UnityEngine.UI;
 public class DialogueManager : MonoBehaviour
 {
     public static DialogueManager Instance;
-
     public static bool IsDialogueActive { get; private set; } = false;
 
     [Header("UI References")]
@@ -23,6 +23,9 @@ public class DialogueManager : MonoBehaviour
     private Queue<string> sentences;
     private bool isTyping = false;
     private string currentSentence;
+
+
+    public event Action OnDialogueEnded;
 
     private void Awake()
     {
@@ -56,8 +59,8 @@ public class DialogueManager : MonoBehaviour
         dialoguePanel.SetActive(true);
         nameText.text = speakerName;
         portraitImage.sprite = portrait;
-        sentences.Clear();
 
+        sentences.Clear();
         foreach (string line in dialogueLines)
             sentences.Enqueue(line);
 
@@ -108,5 +111,8 @@ public class DialogueManager : MonoBehaviour
         dialoguePanel.SetActive(false);
         IsDialogueActive = false;
         continueIndicator.SetActive(false);
+
+       
+        OnDialogueEnded?.Invoke();
     }
 }

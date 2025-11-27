@@ -9,7 +9,7 @@ public static class SaveSystem
     {
         string json = JsonUtility.ToJson(data, true);
         File.WriteAllText(savePath, json);
-        Debug.Log("✅ SaveSystem: Data saved to " + savePath);
+        Debug.Log(" SaveSystem: Data saved to " + savePath);
     }
 
     public static PlayerData LoadData()
@@ -18,11 +18,11 @@ public static class SaveSystem
         {
             string json = File.ReadAllText(savePath);
             PlayerData data = JsonUtility.FromJson<PlayerData>(json);
-            Debug.Log("✅ SaveSystem: Data loaded from " + savePath);
+            Debug.Log(" SaveSystem: Data loaded from " + savePath);
             return data;
         }
 
-        Debug.LogWarning("⚠️ SaveSystem: No save file found!");
+        Debug.LogWarning(" SaveSystem: No save file found!");
         return null;
     }
 
@@ -31,7 +31,7 @@ public static class SaveSystem
         if (File.Exists(savePath))
         {
             File.Delete(savePath);
-            Debug.Log("✅ SaveSystem: Save file deleted.");
+            Debug.Log(" SaveSystem: Save file deleted.");
         }
     }
 

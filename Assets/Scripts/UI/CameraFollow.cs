@@ -53,14 +53,14 @@ public class CameraFollow : MonoBehaviour
             desiredPosition = target.position + offset;
         }
         
-        // Smooth follow
+     
         Vector3 smoothedPosition = Vector3.Lerp(
             transform.position, 
             desiredPosition, 
             smoothSpeed * Time.deltaTime
         );
         
-        // Apply bounds nếu có
+      
         if (useBounds)
         {
             smoothedPosition = ClampToBounds(smoothedPosition);
@@ -74,7 +74,7 @@ public class CameraFollow : MonoBehaviour
         Vector3 currentPos = transform.position;
         Vector3 targetPos = target.position + offset;
         
-        // Chỉ di chuyển camera khi player ra khỏi dead zone
+     
         float deltaX = targetPos.x - currentPos.x;
         float deltaY = targetPos.y - currentPos.y;
         
@@ -94,11 +94,10 @@ public class CameraFollow : MonoBehaviour
     
     Vector3 ClampToBounds(Vector3 position)
     {
-        // Tính camera bounds
+     
         float camHeight = cam.orthographicSize;
         float camWidth = camHeight * cam.aspect;
-        
-        // Clamp position
+     
         position.x = Mathf.Clamp(position.x, minBounds.x + camWidth, maxBounds.x - camWidth);
         position.y = Mathf.Clamp(position.y, minBounds.y + camHeight, maxBounds.y - camHeight);
         
@@ -132,7 +131,7 @@ public class CameraFollow : MonoBehaviour
     }
 
     
-    // Public methods
+  
     public void SetTarget(Transform newTarget)
     {
         target = newTarget;

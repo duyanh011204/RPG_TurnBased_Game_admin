@@ -26,18 +26,20 @@ public class GameManager : MonoBehaviour
     public void NewGame()
     {
         playerData = new PlayerData();
+        DialogueTest.showDialogue = true;
+        SaveSystem.SaveData(playerData);
         LoadScene("GameWorld");
     }
 
     public void LoadGame()
     {
-        // Tạm thời load scene và giữ playerData hiện tại
+      
         LoadScene("GameWorld");
     }
 
     public void SaveGame()
     {
-        // Ví dụ lưu điểm cơ bản bằng PlayerPrefs
+      
         PlayerPrefs.SetInt("attack", playerData.attack);
         PlayerPrefs.SetInt("speed", playerData.speed);
         PlayerPrefs.SetInt("maxHP", playerData.maxHP);
@@ -80,10 +82,7 @@ public class GameManager : MonoBehaviour
         SceneManager.LoadScene(sceneName);
     }
 
-    public void StartCombat()
-    {
-        LoadScene("Combat");
-    }
+   
 
     public void QuitGame()
     {

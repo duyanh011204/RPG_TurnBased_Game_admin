@@ -9,6 +9,7 @@ TagManager:
   - EnemyAttack
   - Ground
   - DontDestroyOnLoad
+  - NPC
   layers:
   - Default
   - TransparentFX

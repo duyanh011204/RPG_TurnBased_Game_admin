@@ -24,14 +24,14 @@ public class PlayerAttack : MonoBehaviour
 
     void Update()
     {
-        Debug.Log($"PointerOverUI = {(EventSystem.current != null && EventSystem.current.IsPointerOverGameObject())}");
+      
 
         Vector2 moveDir = movement.GetMovementDirection();
         if (moveDir != Vector2.zero)
             lastMoveDir = moveDir;
 
         bool canClickAttack = !DialogueManager.IsDialogueActive
-                      && !UIBlocker.IsAnyPanelOpen
+                   
                       && (EventSystem.current == null || !EventSystem.current.IsPointerOverGameObject());
 
         if (canClickAttack && Input.GetMouseButtonDown(0) && canAttack)

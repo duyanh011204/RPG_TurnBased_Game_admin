@@ -13,6 +13,7 @@ public class AttackHitbox : MonoBehaviour
         {
             BattleStartData.SelectedEnemyID = collision.GetComponent<EnemyAI2D>().enemyID.ToString();
             BattleStartData.LastPlayerPosition = transform.position;
+            BattleStartData.TryStartBattle(true);
             SceneTransitions.LoadScene("CombatScene");
         }
     }

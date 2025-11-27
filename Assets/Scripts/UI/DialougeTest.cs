@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class DialogueTest : MonoBehaviour
 {
-    public static bool showDialogue = false; // Flag bật dialogue khi load scene
+    public static bool showDialogue = false; 
     public Sprite testPortrait;
 
     void Start()
@@ -18,20 +18,20 @@ public class DialogueTest : MonoBehaviour
 
     private IEnumerator TriggerNextFrame()
     {
-        yield return null; // đợi 1 frame để DialogueManager.Instance được set
-        TriggerDialogue();
+        yield return null; 
     }
 
     public void TriggerDialogue()
     {
         List<string> lines = new List<string>()
         {
-            "Hello, this is the dialogue system!",
-            "You can click to see the next line.",
-            "When the dialogue ends, the panel will disappear."
+            "Hello there, brave explorer!",
+            "This is the 2D world where your adventure begins.",
+            "Click to continue… and let your story unfold!"
+
         };
 
-        if (DialogueManager.Instance != null)
+        if (DialogueManager.Instance != null)   
         {
             DialogueManager.Instance.StartDialogue("Player", testPortrait, lines);
         }

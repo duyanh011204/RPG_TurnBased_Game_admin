@@ -38,14 +38,14 @@ public class MenuController : MonoBehaviour
     {
         menuPanel.SetActive(true);
         menuButton.SetActive(false);
-        UIBlocker.IsAnyPanelOpen = true;
+       
     }
 
     public void CloseMenu()
     {
         menuPanel.SetActive(false);
         menuButton.SetActive(true);
-        UIBlocker.IsAnyPanelOpen = false;
+        
     }
 
     public void QuitToMainMenu()

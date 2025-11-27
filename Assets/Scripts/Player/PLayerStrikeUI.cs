@@ -19,11 +19,10 @@ public class PlayerStrikeUI : MonoBehaviour
     void Awake()
     {
         animator = GetComponent<Animator>();
-        playerStats = FindObjectOfType<PlayerStats>(); // chắc chắn lấy đúng object Player
+        playerStats = FindObjectOfType<PlayerStats>(); 
         battleManager = FindObjectOfType<BattleManager>();
     }
 
-    // ✅ Hàm công khai cho BattleManager gán enemy target
     public void SetEnemyTarget(Transform target)
     {
         enemyTarget = target;
@@ -58,7 +57,7 @@ public class PlayerStrikeUI : MonoBehaviour
             transform.LookAt(lookPos);
         }
 
-        // 1️⃣ Lao đến gần đối thủ (chỉ di chuyển trên mặt phẳng XZ)
+    
         while (Vector3.Distance(new Vector3(transform.position.x, 0, transform.position.z),
                                 new Vector3(enemyTarget.position.x, 0, enemyTarget.position.z)) > stopDistance)
         {
@@ -67,12 +66,12 @@ public class PlayerStrikeUI : MonoBehaviour
             yield return null;
         }
 
-        // 2️⃣ Bắt đầu animation Strike
+    
         if (animator != null)
             animator.SetTrigger("Strike");
 
 
-        // 3️⃣ Chờ một phần animation rồi gây sát thương
+      
         float animLength = 1f;
         if (animator != null && animator.runtimeAnimatorController != null)
         {
@@ -89,30 +88,37 @@ public class PlayerStrikeUI : MonoBehaviour
 
         yield return new WaitForSeconds(animLength * 0.5f);
 
-        // 4️⃣ Gây sát thương
+
         EnemyAI3D enemy = enemyTarget.GetComponent<EnemyAI3D>();
+        EnemyAI3DKing king = enemyTarget.GetComponent<EnemyAI3DKing>();
+
+        float totalDamage = attackDamage;
+        if (playerStats != null)
+            totalDamage += playerStats.attackBonus;
+
         if (enemy != null)
         {
-            float totalDamage = attackDamage; // sát thương của skill
-            if (playerStats != null)
-                totalDamage += playerStats.attackBonus; // cộng bonus từ StatPanel
-
             enemy.TakeDamage(totalDamage);
         }
+        else if (king != null)
+        {
+            king.TakeDamage(totalDamage);
+        }
+
 
         yield return new WaitForSeconds(animLength * 1f);
 
-        // ⭐ Quay lại chỗ cũ và hướng cũ
+    
         transform.LookAt(originalPosition);
 
-        // 5️⃣ Quay lại vị trí ban đầu
+      
         while (Vector3.Distance(transform.position, originalPosition) > 0.05f)
         {
             transform.position = Vector3.MoveTowards(transform.position, originalPosition, moveSpeed * Time.deltaTime);
             yield return null;
         }
 
-        // 6️⃣ Cập nhật UI & kết thúc lượt
+     
         if (battleManager != null)
         {
             battleManager.UpdateUI();
@@ -120,5 +126,7 @@ public class PlayerStrikeUI : MonoBehaviour
         }
 
         isStriking = false;
+
     }
+
 }
